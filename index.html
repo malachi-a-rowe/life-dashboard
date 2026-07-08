@@ -1044,8 +1044,9 @@ const DEF_UP=[
 ];
 
 // ═══ TRANSACTIONS SEED (from Personal Finance Tracker) ═══
-const FIN_SEED='tracker-20260708';
-let _finReseeded=false;
+const FIN_SEED='tracker-20260708b';
+function needFinSeed(o){return !o.finSeed||o.finSeed!==FIN_SEED;}
+function seedFinance(o){o.accounts=JSON.parse(JSON.stringify(DEF_ACCTS));o.transactions=JSON.parse(JSON.stringify(DEF_TX));o.finSeed=FIN_SEED;}
 const DEF_TX=[
 {"id":"s1","dt":"2026-05-04","ac":"USAA Checking","ds":"Chipotle","ct":"Food","tp":"Expense","am":16.55,"tac":null},
 {"id":"s2","dt":"2026-05-04","ac":"USAA Checking","ds":"Cash App Transfer","ct":"Other","tp":"Expense","am":150.0,"tac":null},
@@ -1280,14 +1281,11 @@ function loadSt(){
       }
     });
   });
-  // One-time finance re-seed: bring accounts + transactions in line with the tracker,
-  // leaving habits, goals, fitness and settings untouched. Runs once per seed version.
-  if(o.finSeed!==FIN_SEED){
-    o.accounts=JSON.parse(JSON.stringify(DEF_ACCTS));
-    o.transactions=JSON.parse(JSON.stringify(DEF_TX));
-    o.finSeed=FIN_SEED;
-    _finReseeded=true;
-  }
+  // Bring finance (accounts + transactions) in line with the tracker for immediate/offline
+  // display. The authoritative push to the cloud happens in syncReconcile — AFTER habits,
+  // goals and fitness are reconciled — so a stale cloud copy can't overwrite the seed and
+  // non-finance data is never at risk. A device-local flag records that a push is still owed.
+  if(needFinSeed(o)){ seedFinance(o); try{localStorage.setItem('ld_fin_pending',FIN_SEED);}catch(e){} }
   return o;
 }
 function saveSt(){try{localStorage.setItem('ld_v10',JSON.stringify(st));}catch(e){}}
@@ -2147,7 +2145,7 @@ function initSupabase(){
     if(document.getElementById('mo-sync').classList.contains('open'))buildSyncModal();
   });
 }
-function onSignedIn(){renderSyncStatus();syncPull();}
+function onSignedIn(){renderSyncStatus();syncReconcile();}
 
 function setSyncState(s){syncState=s;renderSyncStatus();}
 function timeAgo(iso){if(!iso)return 'never';const s=Math.floor((Date.now()-Date.parse(iso))/1000);if(s<60)return 'just now';const m=Math.floor(s/60);if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
@@ -2173,6 +2171,18 @@ async function syncPull(){
       if(syncDirty){await syncPush(true);}else{setSyncState('ok');}
     }
   }catch(e){setSyncState('error');}
+}
+async function syncReconcile(){
+  await syncPull();
+  // After the pull, `st` holds the reconciled (newest) habits/goals/fitness. Now make sure
+  // finance matches the tracker seed and push it up once. Because this runs AFTER the pull, a
+  // stale cloud copy can never revert the seed, and newer non-finance data is never overwritten.
+  var pending=false; try{pending=localStorage.getItem('ld_fin_pending')===FIN_SEED;}catch(e){}
+  if(needFinSeed(st)){ seedFinance(st); _saveStLocal(); rerenderAll(); pending=true; try{localStorage.setItem('ld_fin_pending',FIN_SEED);}catch(e){} }
+  if(pending){
+    syncDirty=true; syncLastEdit=Date.now(); syncMetaSave();
+    if(sbUser){ await syncPush(true); if(syncState==='ok'){try{localStorage.removeItem('ld_fin_pending');}catch(e){}} }
+  }
 }
 function adoptCloud(cloudData,cloudTs){
   st=cloudData;_saveStLocal();
@@ -2233,7 +2243,7 @@ async function doLogin(){
   closeMo('mo-sync');toast('Signed in — syncing.');
 }
 async function doLogout(){await sbClient.auth.signOut();sbUser=null;syncBaseline=null;syncMetaSave();renderSyncStatus();buildSyncModal();toast('Signed out. App still works locally.');}
-async function manualSync(){if(!sbUser){buildSyncModal();return;}await syncPull();toast('Synced.');}
+async function manualSync(){if(!sbUser){buildSyncModal();return;}await syncReconcile();toast('Synced.');}
 function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},3000);}
 
 // hook modal open + periodic freshness tick
@@ -2242,7 +2252,6 @@ openMo=function(id){_openMoSync(id);if(id==='mo-sync')buildSyncModal();};
 setInterval(function(){if(sbUser&&syncState==='ok')renderSyncStatus();},30000);
 
 initSupabase();
-if(_finReseeded){saveSt();}
 
 // ═══ PWA SERVICE WORKER ═══
 if('serviceWorker' in navigator){
