@@ -15,6 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <style>
 :root{
   --bg:#FEFCF8;--sf:#F5F0E8;--hv:#8A7060;--lt:#E4DCD0;
@@ -48,6 +50,10 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'EB Gara
 .pg-row{display:flex;justify-content:space-between;align-items:center}
 .theme-btn{font-size:18px;color:var(--mu);cursor:pointer;padding:4px}
 .theme-btn:hover{color:var(--sec)}
+.sync-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:'DM Mono',monospace;color:var(--sec);cursor:pointer;padding:4px 8px;border:.5px solid var(--lt);border-radius:6px;white-space:nowrap}
+.sync-chip:hover{border-color:var(--hv)}
+.sync-chip i{font-size:14px}
+.sync-chip.err{color:var(--dn);border-color:var(--dn)}
 .sl{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--sec);padding-bottom:8px;border-bottom:.5px solid var(--lt);margin-bottom:14px;font-family:'DM Mono',monospace}
 hr.rv{border:none;border-top:1.5px solid var(--hv);margin:24px 0}
 hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
@@ -276,6 +282,7 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
   <div class="sb-it" data-screen="fitness"><i class="ti ti-barbell"></i>Fitness</div>
   <div class="sb-it" data-screen="finance"><i class="ti ti-coin"></i>Finance</div>
   <div class="sb-sp"></div>
+  <div class="sb-bt" onclick="openMo('mo-sync')"><i class="ti ti-cloud" style="font-size:16px"></i><span>Sync<span id="sb-sync-status" style="display:block;font-size:10px;color:var(--mu)">Not signed in</span></span></div>
   <div class="sb-bt" onclick="openMo('mo-theme')"><i class="ti ti-palette" style="font-size:16px"></i>Theme</div>
 </nav>
 
@@ -283,7 +290,7 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
 
 <!-- DASHBOARD -->
 <section class="scr active" id="scr-dashboard">
-  <div class="pg-row"><div class="pg" id="d-greet"></div><i class="ti ti-palette theme-btn" onclick="openMo('mo-theme')" title="Change theme"></i></div>
+  <div class="pg-row"><div class="pg" id="d-greet"></div><div style="display:flex;align-items:center;gap:8px"><span class="sync-chip" id="sync-chip" onclick="openMo('mo-sync')"><i class="ti ti-cloud-off"></i> Sign in</span><i class="ti ti-palette theme-btn" onclick="openMo('mo-theme')" title="Change theme"></i></div></div>
   <div class="pt" id="d-title">Good morning,<br>Malachi.</div>
   <div id="d-alerts"></div>
   <div class="sl">Evidence of growth</div>
@@ -674,6 +681,14 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
     <div style="font-size:12px;color:var(--mu)">Backend setup (~30 min, free): Plaid dev account → ~50-line Node server → deploy on Railway/Render → point this app at it. Ask me when ready.</div>
   </div>
   <button class="bp" onclick="closeMo('mo-plaid')" style="margin-top:20px">Got it</button>
+</div></div>
+
+<!-- SYNC -->
+<div class="ov" id="mo-sync"><div class="mo">
+  <div class="mt">Sync</div>
+  <div class="ms2">Back up and sync across your devices</div>
+  <div id="sync-body"></div>
+  <button class="bc2" onclick="closeMo('mo-sync')" style="margin-top:14px">Close</button>
 </div></div>
 
 <!-- THEME -->
@@ -1602,6 +1617,133 @@ document.querySelectorAll('[data-screen]').forEach(el=>el.addEventListener('clic
 // ═══ INIT ═══
 applyTheme(st.theme);
 rDash();rHabits();rGoals();rFit();rFin();
+
+// ═══ SUPABASE SYNC ═══
+// Single-user, last-write-wins cloud sync layered onto local storage.
+// The app keeps working fully offline / signed out; sync switches on at login.
+let sbClient=null, sbUser=null, syncDirty=false, syncBaseline=null, syncLastEdit=0, syncLast=null, syncState='idle', pushTimer=null;
+const _saveStLocal = saveSt; // original local-only save
+
+function syncMetaLoad(){try{const m=JSON.parse(localStorage.getItem('ld_sync_meta')||'{}');syncBaseline=m.baseline||null;syncLast=m.last||null;syncLastEdit=m.edit||0;syncDirty=!!m.dirty;}catch(e){}}
+function syncMetaSave(){try{localStorage.setItem('ld_sync_meta',JSON.stringify({baseline:syncBaseline,last:syncLast,edit:syncLastEdit,dirty:syncDirty}));}catch(e){}}
+function rerenderAll(){rDash();rHabits();rGoals();rFit();rFin();}
+
+// Wrap saveSt so every local save also queues a cloud push.
+saveSt=function(){
+  _saveStLocal();
+  syncLastEdit=Date.now();syncDirty=true;syncMetaSave();renderSyncStatus();
+  if(sbUser){clearTimeout(pushTimer);pushTimer=setTimeout(function(){syncPush(true);},1500);}
+};
+
+function initSupabase(){
+  if(!window.supabase||!window.SUPABASE_URL||!window.SUPABASE_ANON_KEY||window.SUPABASE_URL.indexOf('YOUR-')>=0){renderSyncStatus();return;}
+  try{sbClient=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_KEY);}catch(e){renderSyncStatus();return;}
+  syncMetaLoad();
+  sbClient.auth.getSession().then(function(r){
+    if(r.data&&r.data.session){sbUser=r.data.session.user;onSignedIn();}
+    renderSyncStatus();
+  });
+  sbClient.auth.onAuthStateChange(function(_e,session){
+    sbUser=session?session.user:null;
+    if(sbUser){onSignedIn();}else{renderSyncStatus();}
+    if(document.getElementById('mo-sync').classList.contains('open'))buildSyncModal();
+  });
+}
+function onSignedIn(){renderSyncStatus();syncPull();}
+
+function setSyncState(s){syncState=s;renderSyncStatus();}
+function timeAgo(iso){if(!iso)return 'never';const s=Math.floor((Date.now()-Date.parse(iso))/1000);if(s<60)return 'just now';const m=Math.floor(s/60);if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
+
+async function syncPull(){
+  if(!sbClient||!sbUser)return;
+  setSyncState('syncing');
+  try{
+    const {data,error}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
+    if(error){setSyncState('error');return;}
+    if(!data){await syncPush(true);return;} // no cloud row yet → seed it
+    const cloudTs=data.updated_at;
+    if(!syncBaseline){
+      const has=data.data&&Object.keys(data.data).length>0;
+      if(has){adoptCloud(data.data,cloudTs);}else{await syncPush(true);}
+    }else if(cloudTs!==syncBaseline){
+      if(!syncDirty){adoptCloud(data.data,cloudTs);}
+      else{
+        if(Date.parse(cloudTs)>syncLastEdit){adoptCloud(data.data,cloudTs);toast('Another device had newer changes — pulled them in.');}
+        else{await syncPush(true);}
+      }
+    }else{
+      if(syncDirty){await syncPush(true);}else{setSyncState('ok');}
+    }
+  }catch(e){setSyncState('error');}
+}
+function adoptCloud(cloudData,cloudTs){
+  st=cloudData;_saveStLocal();
+  syncBaseline=cloudTs;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
+  rerenderAll();setSyncState('ok');
+}
+async function syncPush(silent){
+  if(!sbClient||!sbUser)return;
+  setSyncState('syncing');
+  try{
+    const nowIso=new Date().toISOString();
+    const {data,error}=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso}).select('updated_at').single();
+    if(error){setSyncState('error');if(!silent)toast('Sync failed: '+error.message);return;}
+    syncBaseline=data.updated_at;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
+    setSyncState('ok');
+  }catch(e){setSyncState('error');}
+}
+
+function renderSyncStatus(){
+  const chip=document.getElementById('sync-chip');
+  if(chip){
+    let ic,tx,err=false;
+    if(!sbClient){ic='ti-cloud-off';tx='Sync off';}
+    else if(!sbUser){ic='ti-cloud-off';tx='Sign in';}
+    else if(syncState==='syncing'){ic='ti-cloud-up';tx='Syncing…';}
+    else if(syncState==='error'){ic='ti-cloud-x';tx='Error';err=true;}
+    else{ic='ti-cloud-check';tx=timeAgo(syncLast);}
+    chip.innerHTML='<i class="ti '+ic+'"></i> '+tx;
+    chip.className='sync-chip'+(err?' err':'');
+  }
+  const sb=document.getElementById('sb-sync-status');
+  if(sb)sb.textContent=!sbClient?'Sync off':(!sbUser?'Not signed in':(syncState==='syncing'?'Syncing…':syncState==='error'?'Sync error':'Synced '+timeAgo(syncLast)));
+  const last=document.getElementById('sy-last');if(last)last.textContent=timeAgo(syncLast);
+}
+function buildSyncModal(){
+  const el=document.getElementById('sync-body');if(!el)return;
+  if(!sbClient){el.innerHTML='<div style="font-size:13px;color:var(--mu);line-height:1.5">Sync isn\u2019t configured yet. Add your Supabase URL and anon key to <strong>config.js</strong>, then reload.</div>';return;}
+  if(sbUser){
+    el.innerHTML='<div style="font-size:14px;margin-bottom:6px">Signed in as <strong>'+(sbUser.email||'you')+'</strong></div>'+
+      '<div style="font-size:12px;color:var(--mu);font-family:\'DM Mono\',monospace;margin-bottom:16px">Last synced: <span id="sy-last">'+timeAgo(syncLast)+'</span></div>'+
+      '<button class="bp" onclick="manualSync()">Sync now</button>'+
+      '<button class="bdel" onclick="doLogout()">Sign out</button>'+
+      '<div style="font-size:11px;color:var(--mu);margin-top:14px;line-height:1.5">Your most recent save on any device is what\u2019s stored in the cloud. Open the app or tap <strong>Sync now</strong> to pull the latest before editing on another device.</div>';
+  }else{
+    el.innerHTML='<div class="fg"><label class="fl">Email</label><input class="fn" id="sy-email" type="email" autocomplete="username"></div>'+
+      '<div class="fg"><label class="fl">Password</label><input class="fn" id="sy-pw" type="password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()"></div>'+
+      '<div id="sy-msg" style="font-size:12px;color:var(--dn);margin-bottom:10px;min-height:14px"></div>'+
+      '<button class="bp" onclick="doLogin()">Sign in</button>'+
+      '<div style="font-size:11px;color:var(--mu);margin-top:14px;line-height:1.5">Use the email + password you created in Supabase. The app works offline whether or not you\u2019re signed in.</div>';
+  }
+}
+async function doLogin(){
+  const em=document.getElementById('sy-email').value.trim(),pw=document.getElementById('sy-pw').value,msg=document.getElementById('sy-msg');
+  if(!em||!pw){if(msg)msg.textContent='Enter email and password.';return;}
+  if(msg)msg.textContent='Signing in…';
+  const {error}=await sbClient.auth.signInWithPassword({email:em,password:pw});
+  if(error){if(msg)msg.textContent=error.message;return;}
+  closeMo('mo-sync');toast('Signed in — syncing.');
+}
+async function doLogout(){await sbClient.auth.signOut();sbUser=null;syncBaseline=null;syncMetaSave();renderSyncStatus();buildSyncModal();toast('Signed out. App still works locally.');}
+async function manualSync(){if(!sbUser){buildSyncModal();return;}await syncPull();toast('Synced.');}
+function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},3000);}
+
+// hook modal open + periodic freshness tick
+const _openMoSync=openMo;
+openMo=function(id){_openMoSync(id);if(id==='mo-sync')buildSyncModal();};
+setInterval(function(){if(sbUser&&syncState==='ok')renderSyncStatus();},30000);
+
+initSupabase();
 
 // ═══ PWA SERVICE WORKER ═══
 if('serviceWorker' in navigator){

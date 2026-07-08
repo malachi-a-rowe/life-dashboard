@@ -70,7 +70,21 @@ git push
 
 The Action redeploys automatically. Your phone picks up the new version next time you open it.
 
-> **Note:** Pushing code updates the *app*, not your *data*. Habits, workouts, and finances are stored per-device in the browser. Syncing that data between phone and desktop is the next phase — it needs a small backend (the same one the Plaid / Garmin / calendar integrations were waiting on). Ask when you're ready and we'll build it.
+> **Note:** Pushing code updates the *app*. Your *data* now syncs separately through Supabase (see below).
+
+---
+
+## Cloud sync (Supabase)
+Sync is built in. Your data lives locally on each device **and** backs up to your private Supabase row, so it travels between phone and desktop.
+
+**To use it:** open the app, tap the **cloud chip** (top-right of the dashboard) or **Sync** in the sidebar, and sign in with the email + password you created in Supabase. Do this once on each device.
+
+- The **cloud chip** shows sync status and how long ago you last synced.
+- **Sync now** (in the Sync panel) forces a reconcile — tap it before switching devices to pull your latest.
+- Conflict handling is **last-write-wins**: your most recent save on any device is the one that's kept. If you edit the same data on two devices while offline, the later save wins.
+- The app works **fully offline and signed out** — sync just switches on when you log in.
+
+Your connection details live in `config.js`. The key in there is the **anon public** key, which is safe to ship publicly; your data is protected by Supabase Row Level Security and your password, not by hiding the key.
 
 ---
 

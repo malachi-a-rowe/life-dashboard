@@ -1,10 +1,11 @@
 // Life Dashboard service worker
 // Bump CACHE version whenever you want to force clients to refetch the shell.
-const CACHE = 'lifedash-v1';
+const CACHE = 'lifedash-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './config.js',
   './icon.svg'
 ];
 
