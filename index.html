@@ -232,6 +232,17 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
 .tx-a{font-family:'DM Mono',monospace;font-size:13px;white-space:nowrap}
 .tx-del{font-size:13px;color:var(--mu);cursor:pointer;flex-shrink:0;padding:0 2px}
 .tx-del:hover{color:var(--dn)}
+.tx-ctl{display:flex;align-items:center;gap:8px;margin:-4px 0 10px}
+.tx-seg{display:flex;border:.5px solid var(--lt);border-radius:6px;overflow:hidden;flex-shrink:0}
+.tx-seg-b{font-size:11px;font-family:'DM Mono',monospace;background:transparent;border:none;padding:4px 9px;cursor:pointer;color:var(--mu);line-height:1.4}
+.tx-seg-b.active{background:var(--ink);color:var(--bg)}
+.tx-search{flex:1;min-width:0;padding:5px 9px;background:var(--sf);border:.5px solid var(--lt);border-radius:6px;font-size:13px;font-family:'EB Garamond',serif;color:var(--ink);outline:none}
+.tx-search:focus{border-color:var(--hv)}
+.tx-sum{font-size:11px;color:var(--mu);font-family:'DM Mono',monospace;padding:2px 0 8px;border-bottom:.5px solid var(--lt);margin-bottom:6px}
+.tx-mo{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--sec);font-family:'DM Mono',monospace;padding:9px 0 4px;position:sticky;top:0;background:var(--bg);z-index:1}
+.csv-row.dup{opacity:.45}
+.csv-opt{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--sec);background:var(--sf);border:.5px solid var(--lt);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.45;cursor:pointer}
+.csv-opt input{width:16px;height:16px;accent-color:var(--hv);margin-top:1px;flex-shrink:0}
 .plaid-card{background:var(--sf);border:.5px solid var(--lt);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .plaid-info{font-size:12px;color:var(--mu);line-height:1.5}
 .nw-line{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;font-family:'DM Mono',monospace}
@@ -447,7 +458,8 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
       <div class="sec-hdr"><span class="sec-lbl">Savings buckets</span><button class="sm-btn" onclick="openMo('mo-sav')">+ Add</button></div>
       <div id="fn-sav"></div>
       <hr class="rl">
-      <div class="sec-hdr"><span class="sec-lbl">Transactions · <span id="fn-mo2"></span></span><span style="display:flex;gap:6px"><button class="sm-btn" onclick="openCsv()">Import CSV</button><button class="sm-btn primary" onclick="openMo('mo-tx')">+ Add</button></span></div>
+      <div class="sec-hdr"><span class="sec-lbl">Transactions</span><span style="display:flex;gap:6px"><button class="sm-btn" onclick="openCsv()">Import</button><button class="sm-btn primary" onclick="openMo('mo-tx')">+ Add</button></span></div>
+      <div class="tx-ctl"><div class="tx-seg"><button id="txv-month" class="tx-seg-b active" onclick="setTxView('month')">This month</button><button id="txv-all" class="tx-seg-b" onclick="setTxView('all')">All history</button></div><input class="tx-search" id="tx-search" placeholder="Search description, account, category…" oninput="txSearchInput(this.value)"></div>
       <div id="fn-txs" style="max-height:320px;overflow-y:auto"></div>
     </div>
   </div>
@@ -1003,17 +1015,20 @@ gym:{name:'Full Gym Access S&C',phases:[
 ]}};
 // ═══ FINANCE SEED ═══
 const DEF_ACCTS={
-  'USAA Checking':{type:'Cash',startBal:1316.05,sts:true},
-  'USAA Savings':{type:'Cash',startBal:1000.01,sts:false},
-  'Fidelity Roth IRA':{type:'Investment',startBal:2591.76,sts:false},
-  'Fidelity Brokerage':{type:'Investment',startBal:123.62,sts:false},
-  'TSP':{type:'Investment',startBal:6547.16,sts:false},
-  'Amex Gold':{type:'Credit Card',startBal:70.11,sts:true},
-  'Capital One':{type:'Credit Card',startBal:0,sts:true},
-  'Venmo':{type:'Cash',startBal:0,sts:true},
-  'Cash App':{type:'Cash',startBal:0,sts:true},
-  'PayPal':{type:'Cash',startBal:0,sts:false},
-  'Step':{type:'Cash',startBal:0,sts:false}
+  "USAA Checking":{type:"Cash",startBal:1316.05,sts:true},
+  "USAA Savings":{type:"Cash",startBal:1000.01,sts:false},
+  "STEP Checking":{type:"Cash",startBal:4.9,sts:true},
+  "STEP Savings":{type:"Cash",startBal:0,sts:false},
+  "STEP Invest":{type:"Investment",startBal:0,sts:false},
+  "Capital One":{type:"Credit Card",startBal:0,sts:true},
+  "Amex Platinum":{type:"Credit Card",startBal:0,sts:true},
+  "Amex Gold":{type:"Credit Card",startBal:70.11,sts:true},
+  "Fidelity Brokerage":{type:"Investment",startBal:123.62,sts:false},
+  "Fidelity Roth IRA":{type:"Investment",startBal:2591.76,sts:false},
+  "TSP":{type:"Investment",startBal:6547.16,sts:false},
+  "Venmo":{type:"Cash",startBal:0,sts:true},
+  "Cash App":{type:"Cash",startBal:0,sts:true},
+  "Paypal":{type:"Cash",startBal:0,sts:true}
 };
 const DEF_BUDS={Food:105,Transportation:20,Personal:15,Entertainment:0,Other:160};
 const DEF_SAVS=[
@@ -1028,13 +1043,220 @@ const DEF_UP=[
   {id:'u3',item:'Google One',amt:2,due:'2026-07-07',type:'Subscription',ac:'Amex Gold',done:false}
 ];
 
+// ═══ TRANSACTIONS SEED (from Personal Finance Tracker) ═══
+const FIN_SEED='tracker-20260708';
+let _finReseeded=false;
+const DEF_TX=[
+{"id":"s1","dt":"2026-05-04","ac":"USAA Checking","ds":"Chipotle","ct":"Food","tp":"Expense","am":16.55,"tac":null},
+{"id":"s2","dt":"2026-05-04","ac":"USAA Checking","ds":"Cash App Transfer","ct":"Other","tp":"Expense","am":150.0,"tac":null},
+{"id":"s3","dt":"2026-05-04","ac":"USAA Checking","ds":"IRA Transfer","ct":"Transfer","tp":"Transfer","am":625.0,"tac":"Fidelity Roth IRA"},
+{"id":"s4","dt":"2026-05-04","ac":"Amex Gold","ds":"Gas","ct":"Transportation","tp":"Expense","am":20.0,"tac":null},
+{"id":"s5","dt":"2026-05-04","ac":"Amex Gold","ds":"Daves Hot Chicken","ct":"Food","tp":"Expense","am":17.42,"tac":null},
+{"id":"s6","dt":"2026-05-04","ac":"Amex Gold","ds":"McDonalds","ct":"Food","tp":"Expense","am":10.08,"tac":null},
+{"id":"s7","dt":"2026-05-05","ac":"USAA Checking","ds":"Promotion Credit","ct":"Income","tp":"Income","am":300.0,"tac":null},
+{"id":"s8","dt":"2026-05-05","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Other","tp":"Expense","am":10.0,"tac":null},
+{"id":"s9","dt":"2026-05-05","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":70.11,"tac":"Amex Gold"},
+{"id":"s10","dt":"2026-05-05","ac":"USAA Checking","ds":"Express Fairchild","ct":"Food","tp":"Expense","am":6.97,"tac":null},
+{"id":"s11","dt":"2026-05-06","ac":"USAA Checking","ds":"Express Fairchild","ct":"Food","tp":"Expense","am":5.38,"tac":null},
+{"id":"s12","dt":"2026-05-06","ac":"USAA Checking","ds":"Savings Transfer","ct":"Transfer","tp":"Transfer","am":210.0,"tac":"USAA Savings"},
+{"id":"s13","dt":"2026-05-06","ac":"Amex Platinum","ds":"T-Mobile Phone Bill","ct":"Bills","tp":"Expense","am":17.93,"tac":null},
+{"id":"s14","dt":"2026-05-07","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":47.5,"tac":"Amex Gold"},
+{"id":"s15","dt":"2026-05-07","ac":"STEP Checking","ds":"Express Library","ct":"Food","tp":"Expense","am":3.88,"tac":null},
+{"id":"s16","dt":"2026-05-07","ac":"Amex Gold","ds":"Google One","ct":"Subscriptions","tp":"Expense","am":2.18,"tac":null},
+{"id":"s17","dt":"2026-05-08","ac":"USAA Checking","ds":"Express Fairchild","ct":"Food","tp":"Expense","am":5.98,"tac":null},
+{"id":"s18","dt":"2026-05-11","ac":"USAA Checking","ds":"Monica's Tacos","ct":"Food","tp":"Expense","am":16.78,"tac":null},
+{"id":"s19","dt":"2026-05-11","ac":"USAA Checking","ds":"C-Store Essentials","ct":"Personal","tp":"Expense","am":13.68,"tac":null},
+{"id":"s20","dt":"2026-05-11","ac":"Venmo","ds":"Jake Cook for Wings","ct":"Food","tp":"Expense","am":15.0,"tac":null},
+{"id":"s21","dt":"2026-05-11","ac":"USAA Checking","ds":"Express Fairchild","ct":"Food","tp":"Expense","am":3.79,"tac":null},
+{"id":"s22","dt":"2026-05-11","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":2.18,"tac":"Amex Gold"},
+{"id":"s23","dt":"2026-05-11","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":17.93,"tac":"Amex Platinum"},
+{"id":"s24","dt":"2026-05-11","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":15.0,"tac":"Venmo"},
+{"id":"s25","dt":"2026-05-12","ac":"USAA Checking","ds":"Express Fairchild","ct":"Food","tp":"Expense","am":6.78,"tac":null},
+{"id":"s26","dt":"2026-05-13","ac":"USAA Checking","ds":"Express Fairchild","ct":"Food","tp":"Expense","am":4.98,"tac":null},
+{"id":"s27","dt":"2026-05-13","ac":"Amex Platinum","ds":"Uber Eats","ct":"Food","tp":"Expense","am":0.55,"tac":null},
+{"id":"s28","dt":"2026-05-14","ac":"USAA Checking","ds":"Walmart for Oasis Party","ct":"Other","tp":"Expense","am":29.59,"tac":null},
+{"id":"s29","dt":"2026-05-14","ac":"USAA Checking","ds":"Costco Food Court","ct":"Food","tp":"Expense","am":7.01,"tac":null},
+{"id":"s30","dt":"2026-05-14","ac":"USAA Checking","ds":"Walmart for Oasis Party","ct":"Other","tp":"Expense","am":8.22,"tac":null},
+{"id":"s31","dt":"2026-05-15","ac":"USAA Checking","ds":"Savings Transfer","ct":"Transfer","tp":"Transfer","am":89.99,"tac":"USAA Savings"},
+{"id":"s32","dt":"2026-05-15","ac":"Amex Gold","ds":"Claude (Anthropic)","ct":"Subscriptions","tp":"Expense","am":21.9,"tac":null},
+{"id":"s33","dt":"2026-05-16","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":6.5,"tac":null},
+{"id":"s34","dt":"2026-05-16","ac":"Amex Gold","ds":"ChatGPT Credit","ct":"Other","tp":"Expense","am":-0.56,"tac":null},
+{"id":"s35","dt":"2026-05-18","ac":"USAA Checking","ds":"Pike's Peak","ct":"Other","tp":"Expense","am":18.0,"tac":null},
+{"id":"s36","dt":"2026-05-18","ac":"USAA Checking","ds":"Commissary","ct":"Food","tp":"Expense","am":4.71,"tac":null},
+{"id":"s37","dt":"2026-05-18","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":0.55,"tac":"Amex Platinum"},
+{"id":"s38","dt":"2026-05-19","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":27.84,"tac":"Amex Gold"},
+{"id":"s39","dt":"2026-05-20","ac":"USAA Checking","ds":"C-Store","ct":"Food","tp":"Expense","am":3.29,"tac":null},
+{"id":"s40","dt":"2026-05-22","ac":"USAA Checking","ds":"Vending Machine","ct":"Food","tp":"Expense","am":2.0,"tac":null},
+{"id":"s41","dt":"2026-05-22","ac":"Amex Platinum","ds":"Uber Eats","ct":"Food","tp":"Expense","am":15.63,"tac":null},
+{"id":"s42","dt":"2026-05-23","ac":"Amex Gold","ds":"Hollister","ct":"Personal","tp":"Expense","am":59.25,"tac":null},
+{"id":"s43","dt":"2026-05-24","ac":"Amex Gold","ds":"MOD Pizza","ct":"Food","tp":"Expense","am":18.82,"tac":null},
+{"id":"s44","dt":"2026-05-24","ac":"Amex Gold","ds":"MOD Pizza","ct":"Food","tp":"Expense","am":7.83,"tac":null},
+{"id":"s45","dt":"2026-05-24","ac":"Cash App","ds":"Amara's Friend","ct":"Other","tp":"Expense","am":20.0,"tac":null},
+{"id":"s46","dt":"2026-05-25","ac":"Amex Gold","ds":"Walmart","ct":"Other","tp":"Expense","am":22.97,"tac":null},
+{"id":"s47","dt":"2026-05-25","ac":"Amex Gold","ds":"Chili's","ct":"Food","tp":"Expense","am":14.45,"tac":null},
+{"id":"s48","dt":"2026-05-26","ac":"USAA Checking","ds":"Cash App Transfer","ct":"Transfer","tp":"Transfer","am":20.0,"tac":"Cash App"},
+{"id":"s49","dt":"2026-05-26","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":15.63,"tac":"Amex Platinum"},
+{"id":"s50","dt":"2026-05-27","ac":"Amex Gold","ds":"Rosie's Diner","ct":"Food","tp":"Expense","am":26.0,"tac":null},
+{"id":"s51","dt":"2026-05-28","ac":"USAA Checking","ds":"Paycheck","ct":"Income","tp":"Income","am":1094.69,"tac":null},
+{"id":"s52","dt":"2026-05-28","ac":"USAA Checking","ds":"Falcon Stadium","ct":"Food","tp":"Expense","am":9.25,"tac":null},
+{"id":"s53","dt":"2026-05-29","ac":"Amex Gold","ds":"Shake Shack","ct":"Food","tp":"Expense","am":15.1,"tac":null},
+{"id":"s54","dt":"2026-05-30","ac":"Venmo","ds":"RJ for Food","ct":"Food","tp":"Expense","am":17.45,"tac":null},
+{"id":"s55","dt":"2026-05-30","ac":"Amex Gold","ds":"Chick-Fil-A","ct":"Food","tp":"Expense","am":14.63,"tac":null},
+{"id":"s56","dt":"2026-05-31","ac":"Amex Gold","ds":"McDonalds","ct":"Food","tp":"Expense","am":16.97,"tac":null},
+{"id":"s57","dt":"2026-05-31","ac":"Amex Gold","ds":"Auntie Anne's","ct":"Food","tp":"Expense","am":8.93,"tac":null},
+{"id":"s58","dt":"2026-05-31","ac":"Amex Gold","ds":"Tokyo Grill and Sushi","ct":"Food","tp":"Expense","am":30.0,"tac":null},
+{"id":"s59","dt":"2026-05-31","ac":"TSP","ds":"Market Adjustment","ct":"Investments","tp":"Adjustment","am":266.24,"tac":null},
+{"id":"s60","dt":"2026-05-31","ac":"Fidelity Brokerage","ds":"Market Adjustment","ct":"Investments","tp":"Adjustment","am":3.93,"tac":null},
+{"id":"s61","dt":"2026-05-31","ac":"Fidelity Roth IRA","ds":"Market Adjustment","ct":"Investments","tp":"Adjustment","am":145.51,"tac":null},
+{"id":"s62","dt":"2026-06-01","ac":"USAA Checking","ds":"Brokerage","ct":"Transfer","tp":"Transfer","am":20.0,"tac":"Fidelity Brokerage"},
+{"id":"s63","dt":"2026-06-01","ac":"USAA Checking","ds":"Savings Transfer","ct":"Transfer","tp":"Transfer","am":210.0,"tac":"USAA Savings"},
+{"id":"s64","dt":"2026-06-01","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":17.45,"tac":"Venmo"},
+{"id":"s65","dt":"2026-06-01","ac":"USAA Checking","ds":"Military Clothing","ct":"Personal","tp":"Expense","am":13.95,"tac":null},
+{"id":"s66","dt":"2026-06-01","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":149.32,"tac":"Amex Gold"},
+{"id":"s67","dt":"2026-06-01","ac":"Venmo","ds":"Josh for Soccer Tickets","ct":"Entertainment","tp":"Expense","am":92.0,"tac":null},
+{"id":"s68","dt":"2026-06-01","ac":"Amex Gold","ds":"Chipotle","ct":"Food","tp":"Expense","am":15.1,"tac":null},
+{"id":"s69","dt":"2026-06-01","ac":"Amex Gold","ds":"Aldi","ct":"Food","tp":"Expense","am":103.51,"tac":null},
+{"id":"s70","dt":"2026-06-01","ac":"USAA Checking","ds":"Tithe","ct":"Tithe","tp":"Expense","am":110.0,"tac":null},
+{"id":"s71","dt":"2026-06-01","ac":"Amex Platinum","ds":"YMCA","ct":"Personal","tp":"Expense","am":36.3,"tac":null},
+{"id":"s72","dt":"2026-06-02","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":94.08,"tac":null},
+{"id":"s73","dt":"2026-06-02","ac":"Amex Gold","ds":"Meijer","ct":"Personal","tp":"Expense","am":9.22,"tac":null},
+{"id":"s74","dt":"2026-06-02","ac":"USAA Checking","ds":"Meijer Gas","ct":"Personal","tp":"Expense","am":13.87,"tac":null},
+{"id":"s75","dt":"2026-06-02","ac":"Amex Gold","ds":"Chipotle","ct":"Food","tp":"Expense","am":14.67,"tac":null},
+{"id":"s76","dt":"2026-06-02","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":92.0,"tac":"Venmo"},
+{"id":"s77","dt":"2026-06-03","ac":"USAA Checking","ds":"Sheetz","ct":"Food","tp":"Expense","am":2.99,"tac":null},
+{"id":"s78","dt":"2026-06-04","ac":"STEP Checking","ds":"Amara Pay Back","ct":"Income","tp":"Income","am":20.0,"tac":null},
+{"id":"s79","dt":"2026-06-05","ac":"USAA Checking","ds":"Panda Express","ct":"Food","tp":"Expense","am":2.35,"tac":null},
+{"id":"s80","dt":"2026-06-05","ac":"Amex Gold","ds":"Cold Stone","ct":"Food","tp":"Expense","am":10.64,"tac":null},
+{"id":"s81","dt":"2026-06-05","ac":"Amex Gold","ds":"Potbelly Sandwich Shop","ct":"Food","tp":"Expense","am":10.99,"tac":null},
+{"id":"s82","dt":"2026-06-06","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":9.39,"tac":null},
+{"id":"s83","dt":"2026-06-06","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":3.0,"tac":null},
+{"id":"s84","dt":"2026-06-06","ac":"Amex Gold","ds":"Gercias Slice","ct":"Food","tp":"Expense","am":10.09,"tac":null},
+{"id":"s85","dt":"2026-06-06","ac":"Amex Gold","ds":"Speedway","ct":"Food","tp":"Expense","am":3.78,"tac":null},
+{"id":"s86","dt":"2026-06-06","ac":"Amex Gold","ds":"Edgewater","ct":"Personal","tp":"Expense","am":6.46,"tac":null},
+{"id":"s87","dt":"2026-06-06","ac":"Amex Gold","ds":"Shell","ct":"Food","tp":"Expense","am":5.68,"tac":null},
+{"id":"s88","dt":"2026-06-06","ac":"Amex Platinum","ds":"T-Mobile Phone Bill","ct":"Bills","tp":"Expense","am":17.93,"tac":null},
+{"id":"s89","dt":"2026-06-07","ac":"Amex Platinum","ds":"BDS Mongolian Grill","ct":"Food","tp":"Expense","am":20.0,"tac":null},
+{"id":"s90","dt":"2026-06-07","ac":"Amex Gold","ds":"Amazon Prime","ct":"Entertainment","tp":"Expense","am":14.99,"tac":null},
+{"id":"s91","dt":"2026-06-07","ac":"Amex Gold","ds":"Cleveland Parking","ct":"Other","tp":"Expense","am":10.17,"tac":null},
+{"id":"s92","dt":"2026-06-07","ac":"Amex Gold","ds":"Google One","ct":"Subscriptions","tp":"Expense","am":2.18,"tac":null},
+{"id":"s93","dt":"2026-06-07","ac":"Amex Gold","ds":"Scene 75","ct":"Entertainment","tp":"Expense","am":6.3,"tac":null},
+{"id":"s94","dt":"2026-06-07","ac":"Amex Gold","ds":"El Taco Veloz","ct":"Food","tp":"Expense","am":19.2,"tac":null},
+{"id":"s95","dt":"2026-06-07","ac":"USAA Checking","ds":"Marathon","ct":"Food","tp":"Expense","am":3.99,"tac":null},
+{"id":"s96","dt":"2026-06-07","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":10.5,"tac":"Venmo"},
+{"id":"s97","dt":"2026-06-07","ac":"Venmo","ds":"To Gerd for Bowling","ct":"Entertainment","tp":"Expense","am":10.5,"tac":null},
+{"id":"s98","dt":"2026-06-08","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":2.69,"tac":null},
+{"id":"s99","dt":"2026-06-08","ac":"Amex Gold","ds":"Chipotle","ct":"Food","tp":"Expense","am":12.7,"tac":null},
+{"id":"s100","dt":"2026-06-08","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":3.49,"tac":null},
+{"id":"s101","dt":"2026-06-09","ac":"STEP Checking","ds":"Vending Machine","ct":"Food","tp":"Expense","am":2.4,"tac":null},
+{"id":"s102","dt":"2026-06-09","ac":"STEP Checking","ds":"Casey's Gas Station","ct":"Food","tp":"Expense","am":7.58,"tac":null},
+{"id":"s103","dt":"2026-06-09","ac":"Amex Gold","ds":"Tsao's Cuisine","ct":"Food","tp":"Expense","am":10.0,"tac":null},
+{"id":"s104","dt":"2026-06-10","ac":"Amex Gold","ds":"Tsao's Cuisine","ct":"Food","tp":"Expense","am":11.5,"tac":null},
+{"id":"s105","dt":"2026-06-10","ac":"Amex Gold","ds":"Casey's Gas Station","ct":"Food","tp":"Expense","am":2.12,"tac":null},
+{"id":"s106","dt":"2026-06-10","ac":"Amex Gold","ds":"Meijer","ct":"Personal","tp":"Expense","am":11.22,"tac":null},
+{"id":"s107","dt":"2026-06-11","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":6.11,"tac":null},
+{"id":"s108","dt":"2026-06-11","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":3.0,"tac":null},
+{"id":"s109","dt":"2026-06-11","ac":"Amex Gold","ds":"United Dairy Farmers","ct":"Food","tp":"Expense","am":9.01,"tac":null},
+{"id":"s110","dt":"2026-06-12","ac":"Amex Gold","ds":"Burger King","ct":"Food","tp":"Expense","am":13.27,"tac":null},
+{"id":"s111","dt":"2026-06-13","ac":"Amex Gold","ds":"Dayton Airshow","ct":"Entertainment","tp":"Expense","am":47.0,"tac":null},
+{"id":"s112","dt":"2026-06-13","ac":"Amex Gold","ds":"F-22 Raptor Demo Merch","ct":"Personal","tp":"Expense","am":17.0,"tac":null},
+{"id":"s113","dt":"2026-06-13","ac":"Amex Gold","ds":"McDonalds","ct":"Food","tp":"Expense","am":4.0,"tac":null},
+{"id":"s114","dt":"2026-06-13","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":28.62,"tac":null},
+{"id":"s115","dt":"2026-06-13","ac":"Amex Gold","ds":"Dayton Airshow Drink Stand","ct":"Food","tp":"Expense","am":12.15,"tac":null},
+{"id":"s116","dt":"2026-06-13","ac":"Amex Gold","ds":"Sheetz","ct":"Food","tp":"Expense","am":4.3,"tac":null},
+{"id":"s117","dt":"2026-06-14","ac":"Amex Gold","ds":"Popeyes","ct":"Food","tp":"Expense","am":11.52,"tac":null},
+{"id":"s118","dt":"2026-06-14","ac":"Amex Gold","ds":"Casey's Gas Station","ct":"Food","tp":"Expense","am":4.58,"tac":null},
+{"id":"s119","dt":"2026-06-15","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":14.95,"tac":null},
+{"id":"s120","dt":"2026-06-15","ac":"Amex Gold","ds":"Graeter's","ct":"Food","tp":"Expense","am":6.33,"tac":null},
+{"id":"s121","dt":"2026-06-15","ac":"Amex Gold","ds":"City BBQ","ct":"Food","tp":"Expense","am":21.31,"tac":null},
+{"id":"s122","dt":"2026-06-15","ac":"Amex Gold","ds":"Claude","ct":"Subscriptions","tp":"Expense","am":21.9,"tac":null},
+{"id":"s123","dt":"2026-06-16","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":6.12,"tac":null},
+{"id":"s124","dt":"2026-06-17","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":5.48,"tac":null},
+{"id":"s125","dt":"2026-06-17","ac":"Amex Gold","ds":"Bob Evans","ct":"Food","tp":"Expense","am":31.25,"tac":null},
+{"id":"s126","dt":"2026-06-18","ac":"Amex Gold","ds":"Ritters","ct":"Food","tp":"Expense","am":7.3,"tac":null},
+{"id":"s127","dt":"2026-06-18","ac":"USAA Savings","ds":"Checkings Transfer","ct":"Transfer","tp":"Transfer","am":200.0,"tac":"USAA Checking"},
+{"id":"s128","dt":"2026-06-18","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":74.23,"tac":"Amex Platinum"},
+{"id":"s129","dt":"2026-06-18","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":719.97,"tac":"Amex Gold"},
+{"id":"s130","dt":"2026-06-19","ac":"Amex Gold","ds":"Sheetz","ct":"Food","tp":"Expense","am":5.0,"tac":null},
+{"id":"s131","dt":"2026-06-19","ac":"Amex Gold","ds":"Cold Stone","ct":"Food","tp":"Expense","am":7.19,"tac":null},
+{"id":"s132","dt":"2026-06-19","ac":"Amex Platinum","ds":"Uber Eats","ct":"Food","tp":"Expense","am":1.26,"tac":null},
+{"id":"s133","dt":"2026-06-20","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":15.77,"tac":null},
+{"id":"s134","dt":"2026-06-20","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":4.26,"tac":null},
+{"id":"s135","dt":"2026-06-20","ac":"Amex Gold","ds":"Circus","ct":"Entertainment","tp":"Expense","am":91.32,"tac":null},
+{"id":"s136","dt":"2026-06-20","ac":"Venmo","ds":"Germ\u00e1n for KPOT","ct":"Food","tp":"Expense","am":36.0,"tac":null},
+{"id":"s137","dt":"2026-06-20","ac":"Venmo","ds":"Putter for Movie","ct":"Entertainment","tp":"Expense","am":13.5,"tac":null},
+{"id":"s138","dt":"2026-06-21","ac":"Amex Gold","ds":"Walmart","ct":"Food","tp":"Expense","am":8.65,"tac":null},
+{"id":"s139","dt":"2026-06-21","ac":"Amex Gold","ds":"Chipotle","ct":"Food","tp":"Expense","am":16.1,"tac":null},
+{"id":"s140","dt":"2026-06-21","ac":"Venmo","ds":"Mo paid for Circus","ct":"Transfer","tp":"Income","am":45.0,"tac":null},
+{"id":"s141","dt":"2026-06-22","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":6.31,"tac":null},
+{"id":"s142","dt":"2026-06-22","ac":"Amex Gold","ds":"Burger King","ct":"Food","tp":"Expense","am":9.0,"tac":null},
+{"id":"s143","dt":"2026-06-22","ac":"USAA Savings","ds":"Checkings Transfer","ct":"Transfer","tp":"Transfer","am":50.0,"tac":"USAA Checking"},
+{"id":"s144","dt":"2026-06-22","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":36.0,"tac":"Venmo"},
+{"id":"s145","dt":"2026-06-22","ac":"USAA Checking","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":13.5,"tac":"Venmo"},
+{"id":"s146","dt":"2026-06-23","ac":"Amex Gold","ds":"WPAFB DFAC","ct":"Food","tp":"Expense","am":6.65,"tac":null},
+{"id":"s147","dt":"2026-06-23","ac":"USAA Savings","ds":"Checkings Transfer","ct":"Transfer","tp":"Transfer","am":150.0,"tac":"USAA Checking"},
+{"id":"s148","dt":"2026-06-23","ac":"Cash App","ds":"Money to Dad","ct":"Other","tp":"Expense","am":150.0,"tac":null},
+{"id":"s149","dt":"2026-06-23","ac":"USAA Checking","ds":"Cash App Transfer","ct":"Transfer","tp":"Transfer","am":150.0,"tac":"Cash App"},
+{"id":"s150","dt":"2026-06-24","ac":"Amex Gold","ds":"Tsao's Cuisine","ct":"Food","tp":"Expense","am":11.5,"tac":null},
+{"id":"s151","dt":"2026-06-24","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":1.26,"tac":"Amex Platinum"},
+{"id":"s152","dt":"2026-06-25","ac":"Amex Gold","ds":"United Dairy Farmers","ct":"Food","tp":"Expense","am":6.49,"tac":null},
+{"id":"s153","dt":"2026-06-25","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":31.97,"tac":null},
+{"id":"s154","dt":"2026-06-25","ac":"Amex Gold","ds":"Chipotle","ct":"Food","tp":"Expense","am":17.85,"tac":null},
+{"id":"s155","dt":"2026-06-25","ac":"USAA Savings","ds":"Checkings Transfer","ct":"Transfer","tp":"Transfer","am":30.0,"tac":"USAA Checking"},
+{"id":"s156","dt":"2026-06-26","ac":"Amex Gold","ds":"United Dairy Farmers","ct":"Food","tp":"Expense","am":6.99,"tac":null},
+{"id":"s157","dt":"2026-06-26","ac":"Amex Gold","ds":"Cedarland","ct":"Food","tp":"Expense","am":24.08,"tac":null},
+{"id":"s158","dt":"2026-06-26","ac":"Venmo","ds":"Isa for Pizza Dive","ct":"Food","tp":"Expense","am":13.0,"tac":null},
+{"id":"s159","dt":"2026-06-26","ac":"USAA Checking","ds":"Step Transfer","ct":"Transfer","tp":"Transfer","am":20.0,"tac":"STEP Checking"},
+{"id":"s160","dt":"2026-06-26","ac":"STEP Checking","ds":"Money to Amara","ct":"Other","tp":"Expense","am":30.0,"tac":null},
+{"id":"s161","dt":"2026-06-27","ac":"Amex Gold","ds":"Meijer","ct":"Food","tp":"Expense","am":18.16,"tac":null},
+{"id":"s162","dt":"2026-06-29","ac":"Amex Gold","ds":"Hello Thai","ct":"Food","tp":"Expense","am":20.0,"tac":null},
+{"id":"s163","dt":"2026-06-29","ac":"Amex Gold","ds":"United Dairy Farmers","ct":"Food","tp":"Expense","am":3.43,"tac":null},
+{"id":"s164","dt":"2026-06-29","ac":"Amex Gold","ds":"United Dairy Farmers","ct":"Food","tp":"Expense","am":4.49,"tac":null},
+{"id":"s165","dt":"2026-06-29","ac":"USAA Checking","ds":"Paycheck","ct":"Income","tp":"Income","am":1224.04,"tac":null},
+{"id":"s166","dt":"2026-06-30","ac":"Amex Gold","ds":"Chipotle","ct":"Food","tp":"Expense","am":13.2,"tac":null},
+{"id":"s167","dt":"2026-06-30","ac":"Amex Gold","ds":"Wendy's","ct":"Food","tp":"Expense","am":17.87,"tac":null},
+{"id":"s168","dt":"2026-06-30","ac":"Fidelity Brokerage","ds":"Market Adjustment","ct":"Investments","tp":"Adjustment","am":-1.81,"tac":null},
+{"id":"s169","dt":"2026-06-30","ac":"Fidelity Roth IRA","ds":"Market Adjustment","ct":"Investments","tp":"Adjustment","am":-58.51,"tac":null},
+{"id":"s170","dt":"2026-06-30","ac":"TSP","ds":"Market Adjustment","ct":"Investments","tp":"Adjustment","am":51.46,"tac":null},
+{"id":"s171","dt":"2026-06-30","ac":"USAA Savings","ds":"Market Adjustment","ct":"Savings","tp":"Adjustment","am":0.21,"tac":null},
+{"id":"s172","dt":"2026-07-01","ac":"USAA Checking","ds":"Savings Transfer","ct":"Transfer","tp":"Transfer","am":210.0,"tac":"USAA Savings"},
+{"id":"s173","dt":"2026-07-01","ac":"USAA Checking","ds":"Tithe","ct":"Tithe","tp":"Expense","am":110.0,"tac":null},
+{"id":"s174","dt":"2026-07-01","ac":"USAA Checking","ds":"Brokerage Transfer","ct":"Transfer","tp":"Transfer","am":20.0,"tac":"Fidelity Brokerage"},
+{"id":"s175","dt":"2026-07-01","ac":"USAA Checking","ds":"Panda Express","ct":"Food","tp":"Expense","am":12.2,"tac":null},
+{"id":"s176","dt":"2026-07-01","ac":"USAA Checking","ds":"Military Clothing","ct":"Personal","tp":"Expense","am":53.9,"tac":null},
+{"id":"s177","dt":"2026-07-02","ac":"USAA Checking","ds":"Hector's Taco Shop","ct":"Food","tp":"Expense","am":12.57,"tac":null},
+{"id":"s178","dt":"2026-07-02","ac":"USAA Checking","ds":"Hector's Taco Shop","ct":"Food","tp":"Expense","am":6.51,"tac":null},
+{"id":"s179","dt":"2026-07-03","ac":"USAA Checking","ds":"Dunkin Donuts","ct":"Food","tp":"Expense","am":8.14,"tac":null},
+{"id":"s180","dt":"2026-07-03","ac":"USAA Checking","ds":"United Wifi","ct":"Personal","tp":"Expense","am":10.0,"tac":null},
+{"id":"s181","dt":"2026-07-03","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":390.31,"tac":"Amex Gold"},
+{"id":"s182","dt":"2026-07-03","ac":"Venmo","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":32.0,"tac":"USAA Checking"},
+{"id":"s183","dt":"2026-07-03","ac":"USAA Checking","ds":"Gabby for Gas","ct":"Other","tp":"Expense","am":20.0,"tac":null},
+{"id":"s184","dt":"2026-07-03","ac":"Amex Gold","ds":"Shri Ganesh","ct":"Food","tp":"Expense","am":99.9,"tac":null},
+{"id":"s185","dt":"2026-07-03","ac":"Venmo","ds":"Toby for Food","ct":"Transfer","tp":"Income","am":50.0,"tac":null},
+{"id":"s186","dt":"2026-07-03","ac":"USAA Checking","ds":"Walmart","ct":"Personal","tp":"Expense","am":18.0,"tac":null},
+{"id":"s187","dt":"2026-07-05","ac":"USAA Checking","ds":"Vending Machine","ct":"Food","tp":"Expense","am":2.25,"tac":null},
+{"id":"s188","dt":"2026-07-05","ac":"USAA Checking","ds":"Dunkin Donuts","ct":"Food","tp":"Expense","am":7.17,"tac":null},
+{"id":"s189","dt":"2026-07-05","ac":"USAA Checking","ds":"Dunkin Donuts","ct":"Food","tp":"Expense","am":2.4,"tac":null},
+{"id":"s190","dt":"2026-07-05","ac":"USAA Checking","ds":"Sam Barber Concert","ct":"Entertainment","tp":"Expense","am":126.55,"tac":null},
+{"id":"s191","dt":"2026-07-05","ac":"Amex Gold","ds":"Hulvey Concert","ct":"Entertainment","tp":"Expense","am":42.47,"tac":null},
+{"id":"s192","dt":"2026-07-06","ac":"USAA Checking","ds":"Amex Payment","ct":"Transfer","tp":"Transfer","am":99.9,"tac":"Amex Gold"},
+{"id":"s193","dt":"2026-07-06","ac":"Venmo","ds":"Venmo Transfer","ct":"Transfer","tp":"Transfer","am":50.0,"tac":"USAA Checking"},
+{"id":"s194","dt":"2026-07-06","ac":"Amex Platinum","ds":"Phone Bill","ct":"Bills","tp":"Expense","am":17.93,"tac":null},
+{"id":"s195","dt":"2026-07-06","ac":"Amex Gold","ds":"In N Out","ct":"Food","tp":"Expense","am":11.59,"tac":null},
+{"id":"s196","dt":"2026-07-06","ac":"USAA Checking","ds":"Walmart","ct":"Personal","tp":"Expense","am":20.02,"tac":null},
+{"id":"s197","dt":"2026-07-06","ac":"Amex Gold","ds":"McDonalds","ct":"Food","tp":"Expense","am":8.12,"tac":null},
+{"id":"s198","dt":"2026-07-06","ac":"Amex Gold","ds":"7 Eleven","ct":"Food","tp":"Expense","am":10.52,"tac":null},
+{"id":"s199","dt":"2026-07-07","ac":"Amex Gold","ds":"Joah & Johns","ct":"Food","tp":"Expense","am":8.06,"tac":null},
+{"id":"s200","dt":"2026-07-07","ac":"Amex Gold","ds":"Amazon Prime","ct":"Subscriptions","tp":"Expense","am":14.99,"tac":null},
+{"id":"s201","dt":"2026-07-07","ac":"Amex Gold","ds":"Google","ct":"Subscriptions","tp":"Expense","am":2.18,"tac":null}
+];
+
 // ═══ STATE ═══
 function uid(){return '_'+Math.random().toString(36).substr(2,9)}
 function getDefault(){
   return{theme:'field',habitDefs:JSON.parse(JSON.stringify(DEF_HABITS)),weeklyDefs:JSON.parse(JSON.stringify(DEF_WEEKLY)),
     goals:JSON.parse(JSON.stringify(DEF_GOALS)),todos:[],plan:{prog:null,ph:0,wk:1,day:0},customPlans:[],
     habits:{},weekly:{},workouts:[],
-    accounts:JSON.parse(JSON.stringify(DEF_ACCTS)),transactions:[],upcoming:JSON.parse(JSON.stringify(DEF_UP)),
+    accounts:JSON.parse(JSON.stringify(DEF_ACCTS)),transactions:JSON.parse(JSON.stringify(DEF_TX)),finSeed:FIN_SEED,upcoming:JSON.parse(JSON.stringify(DEF_UP)),
     budgets:JSON.parse(JSON.stringify(DEF_BUDS)),savings:JSON.parse(JSON.stringify(DEF_SAVS)),
     ms:JSON.parse(JSON.stringify(DEF_MS))};
 }
@@ -1058,11 +1280,22 @@ function loadSt(){
       }
     });
   });
+  // One-time finance re-seed: bring accounts + transactions in line with the tracker,
+  // leaving habits, goals, fitness and settings untouched. Runs once per seed version.
+  if(o.finSeed!==FIN_SEED){
+    o.accounts=JSON.parse(JSON.stringify(DEF_ACCTS));
+    o.transactions=JSON.parse(JSON.stringify(DEF_TX));
+    o.finSeed=FIN_SEED;
+    _finReseeded=true;
+  }
   return o;
 }
 function saveSt(){try{localStorage.setItem('ld_v10',JSON.stringify(st));}catch(e){}}
 let st=loadSt();
 let editMode=false,openAreas={},msGoalId=null,editingMsId=null,editingGoalId=null,editingWkId=null,editingHabitId=null,woExpanded={},editingCpId=null;
+let editingTxId=null,txView='month',txQuery='';
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function ensureOpt(id,val){if(val==null||val==='')return;const el=document.getElementById(id);if(!el)return;var has=false;for(var i=0;i<el.options.length;i++){if(el.options[i].value===val||el.options[i].text===val){has=true;break;}}if(!has){var o=document.createElement('option');o.textContent=val;el.appendChild(o);}el.value=val;}
 
 // ═══ DATES ═══
 function dk(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -1573,7 +1806,7 @@ function savePRs(){Object.keys(st.ms).forEach(k=>{const el=document.getElementBy
 function rFin(){
   const n=new Date();
   document.getElementById('fn-date').textContent=MOS[n.getMonth()]+' '+n.getFullYear();
-  document.getElementById('fn-mo').textContent=MOS[n.getMonth()];document.getElementById('fn-mo2').textContent=MOS[n.getMonth()];
+  document.getElementById('fn-mo').textContent=MOS[n.getMonth()];
   document.getElementById('fn-sts').textContent=fm(safeToSpend());
   const ck=acctBal('USAA Checking')||0;const unpaid=st.upcoming.filter(u=>!u.done&&u.type!=='Credit Card Payment').reduce((s,u)=>s+u.amt,0);
   document.getElementById('fn-stss').textContent='Checking '+fm2(ck)+' · Unpaid obligations '+fm(unpaid);
@@ -1587,15 +1820,49 @@ function rFin(){
   document.getElementById('fn-inc').textContent=fm2(moIncome());
   document.getElementById('fn-up').innerHTML=st.upcoming.length?st.upcoming.map(u=>'<div class="uprow '+(u.done?'up-done':'')+'"><div><div class="up-t">'+u.item+' <span style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+fm2(u.amt)+'</span></div><div class="up-s">'+fmD(u.due)+' · '+u.type+' · '+u.ac+'</div></div><div style="display:flex;align-items:center;gap:6px"><button class="paid-btn" onclick="togUp(\''+u.id+'\')">'+(u.done?'Undo':'Mark paid')+'</button><i class="ti ti-x del-btn" onclick="delUp(\''+u.id+'\')"></i></div></div>').join(''):'<div style="font-size:13px;color:var(--mu);font-style:italic;padding:8px 0">No upcoming bills.</div>';
   document.getElementById('fn-sav').innerHTML=st.savings.map(s=>{const p=Math.min(100,Math.round(s.current/s.goal*100));return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:14px">'+s.name+'</span><span style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:\'DM Mono\',monospace;color:var(--cn)">'+(s.isPercent?s.current+'% / '+s.goal+'%':fm(s.current)+' / '+fm(s.goal))+'</span><i class="ti ti-x del-btn" onclick="delSav(\''+s.id+'\')"></i></span></div><div class="tr"><div class="fi" style="width:'+p+'%;background:var(--cn)"></div></div></div>';}).join('');
-  const mo=curMo();const txs=[...st.transactions].filter(t=>t.dt.startsWith(mo)).sort((a,b)=>b.dt.localeCompare(a.dt));
-  document.getElementById('fn-txs').innerHTML=txs.length?txs.map(t=>{const clr=t.tp==='Income'?'var(--up)':t.tp==='Transfer'?'var(--mu)':'var(--dn)';const pre=t.tp==='Income'?'+':t.tp==='Transfer'?'↔':'−';return '<div class="txr"><div class="tx-l"><div class="tx-d">'+t.ds+'</div><div class="tx-m">'+fmD(t.dt)+' · '+t.ac+(t.tac?' → '+t.tac:'')+' · '+t.ct+'</div></div><span class="tx-a" style="color:'+clr+'">'+pre+fm2(t.am)+'</span><i class="ti ti-x tx-del" onclick="delTx(\''+t.id+'\')"></i></div>';}).join(''):'<div style="font-size:13px;color:var(--mu);font-style:italic;padding:8px 0">No transactions this month. Every number above derives from this list.</div>';
-  const names=Object.keys(st.accounts);['tx-ac','tx-tac','nu-ac'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=names.map(x=>'<option>'+x+'</option>').join('');});
+  renderTxList();
+  const names=Object.keys(st.accounts);['tx-ac','tx-tac','nu-ac'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=names.map(x=>'<option>'+esc(x)+'</option>').join('');});
+}
+function renderTxList(){
+  const cont=document.getElementById('fn-txs');if(!cont)return;
+  const q=(txQuery||'').trim().toLowerCase();
+  let base=st.transactions.filter(function(t){return txView==='all'||t.dt.startsWith(curMo());});
+  if(q)base=base.filter(function(t){return ((t.ds||'')+' '+(t.ac||'')+' '+(t.ct||'')+' '+(t.tac||'')+' '+(t.tp||'')).toLowerCase().indexOf(q)>=0;});
+  base=base.slice().sort(function(a,b){return a.dt===b.dt?(a.id<b.id?1:-1):b.dt.localeCompare(a.dt);});
+  cont.style.maxHeight=txView==='all'?'460px':'320px';
+  if(!base.length){cont.innerHTML='<div style="font-size:13px;color:var(--mu);font-style:italic;padding:8px 0">'+(q?'No transactions match “'+esc(q)+'”.':(txView==='all'?'No transactions yet. Import your ledger (Import → Full ledger) or add one — every number on this page derives from this list.':'No transactions this month. Every number above derives from this list.'))+'</div>';return;}
+  var inc=0,exp=0;base.forEach(function(t){if(t.tp==='Income')inc+=t.am;else if(t.tp==='Expense')exp+=t.am;});
+  var html='<div class="tx-sum">'+base.length+' shown · <span style="color:var(--up)">+'+fm2(inc)+'</span> in · <span style="color:var(--dn)">−'+fm2(exp)+'</span> out</div>';
+  var lastMo='';
+  base.forEach(function(t){
+    if(txView==='all'){var mo=t.dt.slice(0,7);if(mo!==lastMo){lastMo=mo;var pp=mo.split('-');html+='<div class="tx-mo">'+MOS[(+pp[1])-1]+' '+pp[0]+'</div>';}}
+    var clr=t.tp==='Income'?'var(--up)':t.tp==='Transfer'?'var(--mu)':t.tp==='Adjustment'?'var(--sec)':'var(--dn)';
+    var pre=t.tp==='Income'?'+':t.tp==='Transfer'?'↔':t.tp==='Adjustment'?'±':'−';
+    html+='<div class="txr"><div class="tx-l" onclick="editTx(\''+t.id+'\')" style="cursor:pointer"><div class="tx-d">'+esc(t.ds)+'</div><div class="tx-m">'+fmD(t.dt)+' · '+esc(t.ac)+(t.tac?' → '+esc(t.tac):'')+' · '+esc(t.ct)+'</div></div><span class="tx-a" onclick="editTx(\''+t.id+'\')" style="cursor:pointer;color:'+clr+'">'+pre+fm2(t.am)+'</span><i class="ti ti-x tx-del" onclick="delTx(\''+t.id+'\')"></i></div>';
+  });
+  cont.innerHTML=html;
+}
+function setTxView(v){txView=v;var m=document.getElementById('txv-month'),a=document.getElementById('txv-all');if(m)m.classList.toggle('active',v==='month');if(a)a.classList.toggle('active',v==='all');renderTxList();}
+function txSearchInput(v){txQuery=v;renderTxList();}
+function editTx(id){
+  const t=st.transactions.find(function(x){return x.id===id;});if(!t)return;
+  openMo('mo-tx');
+  editingTxId=id;
+  document.querySelector('#mo-tx .mt').textContent='Edit transaction';
+  document.querySelector('#mo-tx .bp').textContent='Save changes';
+  document.getElementById('tx-dt').value=t.dt;
+  ensureOpt('tx-tp',t.tp);txTypeChange();
+  document.getElementById('tx-ds').value=t.ds||'';
+  ensureOpt('tx-ct',t.ct);
+  document.getElementById('tx-am').value=t.am;
+  ensureOpt('tx-ac',t.ac);
+  if(t.tp==='Transfer'&&t.tac)ensureOpt('tx-tac',t.tac);
 }
 function editAcct(nm){const id='ab-'+nm.replace(/\W/g,'_');const el=document.getElementById(id);if(!el)return;const cur=acctBal(nm);el.outerHTML='<input class="acct-edit" id="ae-'+id+'" type="number" step="0.01" value="'+cur.toFixed(2)+'" onblur="commitAcct(\''+nm.replace(/'/g,"\\'")+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">';const inp=document.getElementById('ae-'+id);if(inp){inp.focus();inp.select();}}
 function commitAcct(nm,val){const v=parseFloat(val);if(!isNaN(v)){const diff=v-acctBal(nm);if(Math.abs(diff)>0.001)st.transactions.push({id:uid(),dt:today(),ac:nm,ds:'Manual adjustment',ct:'Adjustment',tp:'Adjustment',am:diff,tac:null});}saveSt();rFin();}
 function delAcct(nm){if(!confirm('Remove "'+nm+'" and all its transactions?'))return;delete st.accounts[nm];st.transactions=st.transactions.filter(t=>t.ac!==nm&&t.tac!==nm);saveSt();rFin();}
 function txTypeChange(){document.getElementById('tx-tac-w').style.display=document.getElementById('tx-tp').value==='Transfer'?'block':'none';}
-function saveTx(){const ds=document.getElementById('tx-ds').value.trim();const am=parseFloat(document.getElementById('tx-am').value);if(!ds||isNaN(am)||am<=0)return;const tp=document.getElementById('tx-tp').value;st.transactions.push({id:uid(),dt:document.getElementById('tx-dt').value||today(),ac:document.getElementById('tx-ac').value,ds,ct:document.getElementById('tx-ct').value,tp,am,tac:tp==='Transfer'?document.getElementById('tx-tac').value:null});saveSt();closeMo('mo-tx');document.getElementById('tx-ds').value='';document.getElementById('tx-am').value='';rFin();}
+function saveTx(){const ds=document.getElementById('tx-ds').value.trim();const am=parseFloat(document.getElementById('tx-am').value);if(!ds||isNaN(am)||am<=0)return;const tp=document.getElementById('tx-tp').value;const obj={dt:document.getElementById('tx-dt').value||today(),ac:document.getElementById('tx-ac').value,ds:ds,ct:document.getElementById('tx-ct').value,tp:tp,am:am,tac:tp==='Transfer'?document.getElementById('tx-tac').value:null};if(editingTxId){const t=st.transactions.find(function(x){return x.id===editingTxId;});if(t)Object.assign(t,obj);}else{obj.id=uid();st.transactions.push(obj);}editingTxId=null;saveSt();closeMo('mo-tx');document.getElementById('tx-ds').value='';document.getElementById('tx-am').value='';rFin();rDash();}
 function delTx(id){if(!confirm('Delete this transaction? Balances will update.'))return;st.transactions=st.transactions.filter(t=>t.id!==id);saveSt();rFin();}
 function saveAcct(){const nm=document.getElementById('na-nm').value.trim();if(!nm)return;st.accounts[nm]={type:document.getElementById('na-tp').value,startBal:parseFloat(document.getElementById('na-bal').value)||0,sts:document.getElementById('na-sts').checked};saveSt();closeMo('mo-acct');document.getElementById('na-nm').value='';document.getElementById('na-bal').value='';rFin();}
 function saveBud(c,val){const v=parseFloat(val);if(!isNaN(v)&&v>=0)st.budgets[c]=v;saveSt();rFin();}
@@ -1615,7 +1882,7 @@ function openMo(id){
   if(id==='mo-pr')openPR();
   if(id==='mo-theme')rThemes();
   if(id==='mo-wo'){const n=new Date();document.getElementById('wo-dt').textContent=DAYS[n.getDay()]+', '+MOS[n.getMonth()]+' '+n.getDate()+' — log each set as you finish it';if(document.getElementById('wo-exs').children.length===0){exN=0;addEx();}}
-  if(id==='mo-tx'){document.getElementById('tx-dt').value=today();txTypeChange();}
+  if(id==='mo-tx'){editingTxId=null;document.querySelector('#mo-tx .mt').textContent='Add transaction';document.querySelector('#mo-tx .bp').textContent='Add transaction';document.getElementById('tx-ds').value='';document.getElementById('tx-am').value='';document.getElementById('tx-dt').value=today();txTypeChange();}
   if(id==='mo-up')document.getElementById('nu-due').value=today();
   const names=Object.keys(st.accounts);['tx-ac','tx-tac','nu-ac'].forEach(s=>{const el=document.getElementById(s);if(el)el.innerHTML=names.map(x=>'<option>'+x+'</option>').join('');});
 }
@@ -1639,9 +1906,11 @@ const PRESETS={
   cashapp:{name:'Cash App',date:['Date','Transaction Date'],amount:['Net Amount','Amount'],desc:['Notes','Name','Transaction Type'],hint:'Cash App → Activity → the account icon → Export CSV / Documents → Monthly Statements.'},
   paypal:{name:'PayPal',date:['Date'],amount:['Net','Gross','Amount'],desc:['Name','Item Title','Type','Description'],hint:'PayPal → Activity → Statements → Download → CSV.'},
   step:{name:'Step',date:['Date','Transaction Date','Posted Date'],amount:['Amount'],desc:['Description','Merchant','Name','Memo'],hint:'Step app → Account / Card → transactions → Export (or request a statement).'},
+  ledger:{name:'Full ledger (my tracker)',date:['Date','Transaction Date','Posted Date'],amount:['Amount','Amount ($)','Value','Net'],desc:['Description','Memo','Note','Details','Name','Merchant'],account:['Account','Account Name','Source'],category:['Category','Cat','Budget','Bucket'],type:['Type','Flow','Direction','Kind'],hint:'Export your tracker\u2019s Transactions tab as CSV. This reads the Account, Category and Type columns and spreads rows across accounts — creating any account it doesn\u2019t recognize so your lineup matches your tracker (PayPal stays).'},
   custom:{name:'Custom / other',date:[],amount:[],desc:[],hint:'Any CSV works — you\u2019ll pick which columns are the date, amount, and description.'}
 };
 let csvRows=[],csvHeaderIdx=0,csvHeaderCells=[],csvCols={date:-1,amount:-1,desc:-1},csvParsed=[],csvDup=[],csvAccount=null,csvDefCat='Other';
+let csvMode='single',csvLedgerCols={account:-1,category:-1,type:-1};
 
 function parseCSV(text){
   const rows=[];let row=[],field='',inQ=false;
@@ -1702,6 +1971,7 @@ function normAmount(s){
   return neg?-v:v;
 }
 function buildParsed(){
+  if(csvMode==='ledger')return buildParsedLedger();
   const out=[];
   for(let i=csvHeaderIdx+1;i<csvRows.length;i++){
     const r=csvRows[i];if(!r)continue;
@@ -1713,6 +1983,28 @@ function buildParsed(){
   }
   return out;
 }
+function buildParsedLedger(){
+  const out=[];
+  for(let i=csvHeaderIdx+1;i<csvRows.length;i++){
+    const r=csvRows[i];if(!r)continue;
+    const dt=normDate(r[csvCols.date]||'');const amt=normAmount(r[csvCols.amount]||'');
+    if(!dt||amt===null)continue;
+    const ac=((csvLedgerCols.account>=0?r[csvLedgerCols.account]:'')||'').trim();if(!ac)continue;
+    const ds=((csvCols.desc>=0?r[csvCols.desc]:'')||'').trim()||'(imported)';
+    const rawCt=((csvLedgerCols.category>=0?r[csvLedgerCols.category]:'')||'').trim();
+    const rawTp=((csvLedgerCols.type>=0?r[csvLedgerCols.type]:'')||'').trim().toLowerCase();
+    let tp;
+    if(rawTp){
+      if(/adjust/.test(rawTp))tp='Adjustment';
+      else if(/income|credit|deposit|paycheck|salary|refund|interest|payroll/.test(rawTp))tp='Income';
+      else if(/expense|debit|withdraw|purchase|spend|payment|bill/.test(rawTp))tp='Expense';
+      else tp=amt<0?'Expense':'Income';
+    }else{tp=amt<0?'Expense':'Income';}
+    const ct=rawCt||(tp==='Income'?'Income':'Other');
+    out.push({dt:dt,am:Math.abs(amt),ds:ds,tp:tp,ac:ac,ct:ct});
+  }
+  return out;
+}
 function existingKeys(){const set=new Set();st.transactions.forEach(t=>set.add(t.dt+'|'+t.am.toFixed(2)+'|'+(t.ds||'').trim().toLowerCase()));return set;}
 
 function openCsv(){csvAccount=st.accounts['Venmo']?'Venmo':Object.keys(st.accounts)[0];openMo('mo-csv');csvStep1();}
@@ -1720,16 +2012,16 @@ function csvStep1(){
   const accts=Object.keys(st.accounts);
   const cats=['Food','Transportation','Personal','Entertainment','Bills','Subscriptions','Investments','Other'];
   document.getElementById('csv-body').innerHTML=
-    '<div class="fr2"><div class="fg"><label class="fl">Import into account</label><select class="fs" id="csv-acct">'+accts.map(a=>'<option'+(a===csvAccount?' selected':'')+'>'+a+'</option>').join('')+'</select></div>'+
+    '<div class="fr2"><div class="fg" id="csv-acct-w"><label class="fl">Import into account</label><select class="fs" id="csv-acct">'+accts.map(a=>'<option'+(a===csvAccount?' selected':'')+'>'+esc(a)+'</option>').join('')+'</select></div>'+
     '<div class="fg"><label class="fl">Statement from</label><select class="fs" id="csv-prov">'+Object.entries(PRESETS).map(([k,p])=>'<option value="'+k+'">'+p.name+'</option>').join('')+'</select></div></div>'+
-    '<div class="fg"><label class="fl">Default category for expenses</label><select class="fs" id="csv-cat">'+cats.map(c=>'<option'+(c==='Other'?' selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
+    '<div class="fg" id="csv-cat-w"><label class="fl">Default category for expenses</label><select class="fs" id="csv-cat">'+cats.map(c=>'<option'+(c==='Other'?' selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
     '<div class="fg"><label class="fl">CSV file</label><input class="fn" type="file" accept=".csv,text/csv,text/plain" id="csv-file"></div>'+
     '<div id="csv-msg" style="font-size:12px;color:var(--dn);min-height:14px;margin-bottom:6px"></div>'+
     '<div id="csv-hint" style="font-size:11px;color:var(--mu);margin-bottom:12px;line-height:1.5"></div>'+
     '<button class="bp" onclick="csvParseFile()">Parse file</button>'+
     '<button class="bc2" onclick="closeMo(\'mo-csv\')">Cancel</button>';
   const provSel=document.getElementById('csv-prov');
-  const updHint=function(){document.getElementById('csv-hint').textContent=PRESETS[provSel.value].hint||'';};
+  const updHint=function(){const p=provSel.value;document.getElementById('csv-hint').textContent=PRESETS[p].hint||'';const isL=p==='ledger';document.getElementById('csv-acct-w').style.display=isL?'none':'block';document.getElementById('csv-cat-w').style.display=isL?'none':'block';};
   provSel.onchange=updHint;updHint();
 }
 function csvParseFile(){
@@ -1738,6 +2030,7 @@ function csvParseFile(){
   const prov=document.getElementById('csv-prov').value;
   const fileEl=document.getElementById('csv-file');
   if(!fileEl.files||!fileEl.files[0]){document.getElementById('csv-msg').textContent='Choose a CSV file first.';return;}
+  csvMode=prov==='ledger'?'ledger':'single';
   const reader=new FileReader();
   reader.onload=function(e){
     csvRows=parseCSV(e.target.result);
@@ -1746,8 +2039,14 @@ function csvParseFile(){
     csvHeaderIdx=findHeader(csvRows,preset);
     csvHeaderCells=csvRows[csvHeaderIdx]||[];
     const cd=resolveCol(csvHeaderCells,preset.date),ca=resolveCol(csvHeaderCells,preset.amount),cs=resolveCol(csvHeaderCells,preset.desc);
-    if(cd>=0&&ca>=0){csvCols={date:cd,amount:ca,desc:cs};csvPreview();}
-    else{csvStepMap(cd,ca,cs);}
+    if(csvMode==='ledger'){
+      const cac=resolveCol(csvHeaderCells,preset.account||[]),cct=resolveCol(csvHeaderCells,preset.category||[]),ctp=resolveCol(csvHeaderCells,preset.type||[]);
+      csvCols={date:cd,amount:ca,desc:cs};csvLedgerCols={account:cac,category:cct,type:ctp};
+      if(cd>=0&&ca>=0&&cac>=0){csvPreview();}else{csvStepMapLedger(cd,ca,cs,cac,cct,ctp);}
+    }else{
+      if(cd>=0&&ca>=0){csvCols={date:cd,amount:ca,desc:cs};csvPreview();}
+      else{csvStepMap(cd,ca,cs);}
+    }
   };
   reader.onerror=function(){document.getElementById('csv-msg').textContent='Could not read that file.';};
   reader.readAsText(fileEl.files[0]);
@@ -1767,21 +2066,51 @@ function csvApplyMap(){
   if(isNaN(csvCols.date)||isNaN(csvCols.amount)||csvCols.date<0||csvCols.amount<0)return;
   csvPreview();
 }
+function csvStepMapLedger(cd,ca,cs,cac,cct,ctp){
+  const optList=function(sel,withNone){return (withNone?'<option value="-1">(none)</option>':'')+csvHeaderCells.map(function(h,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(h.trim()||('Column '+(i+1)))+'</option>';}).join('');};
+  document.getElementById('csv-body').innerHTML=
+    '<div style="font-size:13px;color:var(--mu);margin-bottom:14px;line-height:1.5">Map your ledger\u2019s columns. Account is required. Type is optional — it sets income vs. expense; without it, the sign of the amount decides.</div>'+
+    '<div class="fr2"><div class="fg"><label class="fl">Date column</label><select class="fs" id="csv-cd">'+optList(cd,false)+'</select></div>'+
+    '<div class="fg"><label class="fl">Amount column</label><select class="fs" id="csv-ca">'+optList(ca,false)+'</select></div></div>'+
+    '<div class="fr2"><div class="fg"><label class="fl">Account column</label><select class="fs" id="csv-cac">'+optList(cac,false)+'</select></div>'+
+    '<div class="fg"><label class="fl">Description column</label><select class="fs" id="csv-cs">'+optList(cs,true)+'</select></div></div>'+
+    '<div class="fr2"><div class="fg"><label class="fl">Category column</label><select class="fs" id="csv-cct">'+optList(cct,true)+'</select></div>'+
+    '<div class="fg"><label class="fl">Type column</label><select class="fs" id="csv-ctp">'+optList(ctp,true)+'</select></div></div>'+
+    '<button class="bp" onclick="csvApplyMapLedger()">Preview</button>'+
+    '<button class="bc2" onclick="csvStep1()">Back</button>';
+}
+function csvApplyMapLedger(){
+  csvCols={date:parseInt(document.getElementById('csv-cd').value),amount:parseInt(document.getElementById('csv-ca').value),desc:parseInt(document.getElementById('csv-cs').value)};
+  csvLedgerCols={account:parseInt(document.getElementById('csv-cac').value),category:parseInt(document.getElementById('csv-cct').value),type:parseInt(document.getElementById('csv-ctp').value)};
+  if(isNaN(csvCols.date)||isNaN(csvCols.amount)||isNaN(csvLedgerCols.account)||csvCols.date<0||csvCols.amount<0||csvLedgerCols.account<0)return;
+  csvPreview();
+}
 function csvPreview(){
   csvParsed=buildParsed();
-  const keys=existingKeys(),seen=new Set();
-  csvDup=csvParsed.map(function(p){const k=p.dt+'|'+p.am.toFixed(2)+'|'+p.ds.trim().toLowerCase();if(keys.has(k)||seen.has(k))return true;seen.add(k);return false;});
+  const ledger=csvMode==='ledger';
+  const keys=new Set();st.transactions.forEach(function(t){keys.add((ledger?((t.ac||'')+'|'):'')+t.dt+'|'+t.am.toFixed(2)+'|'+(t.ds||'').trim().toLowerCase());});
+  const seen=new Set();
+  csvDup=csvParsed.map(function(p){const k=(ledger?((p.ac||'')+'|'):'')+p.dt+'|'+p.am.toFixed(2)+'|'+p.ds.trim().toLowerCase();if(keys.has(k)||seen.has(k))return true;seen.add(k);return false;});
   const newCount=csvDup.filter(function(d){return !d;}).length,dupCount=csvDup.filter(function(d){return d;}).length;
   if(!csvParsed.length){document.getElementById('csv-body').innerHTML='<div style="font-size:13px;color:var(--mu);margin-bottom:14px;line-height:1.5">No transactions could be parsed with the current columns. Try the mapping, or check the file.</div><button class="bc2" onclick="csvStep1()">Back</button>';return;}
-  const rowsHtml=csvParsed.map(function(p,i){return '<div class="csv-row '+(csvDup[i]?'dup':'')+'"><div style="min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.ds+'</div><div style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+fmD(p.dt)+' · '+p.ac+' · '+p.ct+'</div></div><div style="display:flex;align-items:center;gap:8px">'+(csvDup[i]?'<span class="csv-dupbadge">dup</span>':'')+'<span class="csv-amt" style="color:'+(p.tp==='Income'?'var(--up)':'var(--dn)')+'">'+(p.tp==='Income'?'+':'\u2212')+fm2(p.am)+'</span></div></div>';}).join('');
+  var newAccts=[];
+  if(ledger){var have={};Object.keys(st.accounts).forEach(function(n){have[n]=1;});var sa={};csvParsed.forEach(function(p,i){if(csvDup[i])return;if(!have[p.ac]&&!sa[p.ac]){sa[p.ac]=1;newAccts.push(p.ac);}});}
+  const rowsHtml=csvParsed.map(function(p,i){var clr=p.tp==='Income'?'var(--up)':p.tp==='Transfer'?'var(--mu)':'var(--dn)';var pre=p.tp==='Income'?'+':p.tp==='Transfer'?'↔':'−';return '<div class="csv-row '+(csvDup[i]?'dup':'')+'"><div style="min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.ds)+'</div><div style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+fmD(p.dt)+' · '+esc(p.ac)+' · '+esc(p.ct)+'</div></div><div style="display:flex;align-items:center;gap:8px">'+(csvDup[i]?'<span class="csv-dupbadge">dup</span>':'')+'<span class="csv-amt" style="color:'+clr+'">'+pre+fm2(p.am)+'</span></div></div>';}).join('');
   document.getElementById('csv-body').innerHTML=
     '<div style="font-size:13px;margin-bottom:10px"><strong>'+newCount+'</strong> new · <span style="color:var(--mu)">'+dupCount+' duplicate'+(dupCount===1?'':'s')+' (will skip)</span></div>'+
+    (ledger?('<div style="font-size:12px;color:var(--mu);margin-bottom:10px;line-height:1.5">'+(newAccts.length?('Creates '+newAccts.length+' new account'+(newAccts.length===1?'':'s')+': '+newAccts.map(esc).join(', ')+'.'):'All accounts already exist.')+'</div>'+
+      '<label class="csv-opt"><input type="checkbox" id="csv-zero"><span>Rebuild balances from history — zero every account\u2019s starting balance first, so balances come only from these transactions. Leave off to keep current balances and layer history on top.</span></label>'):'')+
     '<div class="csv-prev">'+rowsHtml+'</div>'+
     (newCount>0?'<button class="bp" onclick="csvCommit()">Import '+newCount+' transaction'+(newCount===1?'':'s')+'</button>':'<div style="font-size:12px;color:var(--mu);text-align:center;padding:8px">Nothing new to import.</div>')+
     '<button class="bc2" onclick="csvStep1()">Back</button>';
 }
 function csvCommit(){
   const add=csvParsed.filter(function(p,i){return !csvDup[i];});
+  if(csvMode==='ledger'){
+    add.forEach(function(p){if(!st.accounts[p.ac]){const isCard=/credit|card|amex|visa|discover|mastercard|capital one|loan|mortgage/i.test(p.ac);st.accounts[p.ac]={type:isCard?'Credit Card':'Cash',startBal:0,sts:false};}});
+    const zero=document.getElementById('csv-zero');
+    if(zero&&zero.checked){Object.keys(st.accounts).forEach(function(n){st.accounts[n].startBal=0;});}
+  }
   add.forEach(function(p){st.transactions.push({id:uid(),dt:p.dt,ac:p.ac,ds:p.ds,ct:p.ct,tp:p.tp,am:p.am,tac:null});});
   saveSt();closeMo('mo-csv');rFin();rDash();
   toast(add.length+' transaction'+(add.length===1?'':'s')+' imported.');
@@ -1913,6 +2242,7 @@ openMo=function(id){_openMoSync(id);if(id==='mo-sync')buildSyncModal();};
 setInterval(function(){if(sbUser&&syncState==='ok')renderSyncStatus();},30000);
 
 initSupabase();
+if(_finReseeded){saveSt();}
 
 // ═══ PWA SERVICE WORKER ═══
 if('serviceWorker' in navigator){
