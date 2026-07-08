@@ -54,6 +54,11 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'EB Gara
 .sync-chip:hover{border-color:var(--hv)}
 .sync-chip i{font-size:14px}
 .sync-chip.err{color:var(--dn);border-color:var(--dn)}
+.sy-cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.sy-side{background:var(--sf);border:.5px solid var(--lt);border-radius:9px;padding:12px}
+.sy-side-l{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--sec);font-family:'DM Mono',monospace;margin-bottom:6px}
+.sy-side-v{font-size:14px;line-height:1.35}
+.sy-side-t{font-size:11px;color:var(--mu);font-family:'DM Mono',monospace;margin-top:5px}
 .csv-prev{max-height:300px;overflow-y:auto;border:.5px solid var(--lt);border-radius:8px;padding:2px 10px;margin-bottom:12px}
 .csv-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid var(--lt);font-size:13px}
 .csv-row:last-child{border-bottom:none}
@@ -2156,19 +2161,17 @@ async function syncPull(){
   try{
     const {data,error}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
     if(error){setSyncState('error');return;}
-    if(!data){await syncPush(true);return;} // no cloud row yet → seed it
+    if(!data){await syncPush(true);return;} // nothing in the cloud yet → seed it
     const cloudTs=data.updated_at;
-    if(!syncBaseline){
+    if(!syncDirty){
+      // No unsynced local changes — safe to take the cloud copy if it differs. Nothing is lost.
       const has=data.data&&Object.keys(data.data).length>0;
-      if(has){adoptCloud(data.data,cloudTs);}else{await syncPush(true);}
-    }else if(cloudTs!==syncBaseline){
-      if(!syncDirty){adoptCloud(data.data,cloudTs);}
-      else{
-        if(Date.parse(cloudTs)>syncLastEdit){adoptCloud(data.data,cloudTs);toast('Another device had newer changes — pulled them in.');}
-        else{await syncPush(true);}
-      }
+      if(has&&cloudTs!==syncBaseline){adoptCloud(data.data,cloudTs);}
+      else{syncBaseline=cloudTs;syncMetaSave();setSyncState('ok');}
     }else{
-      if(syncDirty){await syncPush(true);}else{setSyncState('ok');}
+      // Local has unsynced changes.
+      if(cloudTs===syncBaseline){await syncPush(true);}   // cloud untouched since our last sync → push local up
+      else{setSyncState('conflict');}                       // both sides changed → don't guess; let the user choose (Upload/Download)
     }
   }catch(e){setSyncState('error');}
 }
@@ -2209,23 +2212,30 @@ function renderSyncStatus(){
     else if(!sbUser){ic='ti-cloud-off';tx='Sign in';}
     else if(syncState==='syncing'){ic='ti-cloud-up';tx='Syncing…';}
     else if(syncState==='error'){ic='ti-cloud-x';tx='Error';err=true;}
+    else if(syncState==='conflict'){ic='ti-cloud-question';tx='Choose sync';err=true;}
     else{ic='ti-cloud-check';tx=timeAgo(syncLast);}
     chip.innerHTML='<i class="ti '+ic+'"></i> '+tx;
     chip.className='sync-chip'+(err?' err':'');
   }
   const sb=document.getElementById('sb-sync-status');
-  if(sb)sb.textContent=!sbClient?'Sync off':(!sbUser?'Not signed in':(syncState==='syncing'?'Syncing…':syncState==='error'?'Sync error':'Synced '+timeAgo(syncLast)));
+  if(sb)sb.textContent=!sbClient?'Sync off':(!sbUser?'Not signed in':(syncState==='syncing'?'Syncing…':syncState==='error'?'Sync error':syncState==='conflict'?'Tap to choose sync':'Synced '+timeAgo(syncLast)));
   const last=document.getElementById('sy-last');if(last)last.textContent=timeAgo(syncLast);
 }
 function buildSyncModal(){
   const el=document.getElementById('sync-body');if(!el)return;
   if(!sbClient){el.innerHTML='<div style="font-size:13px;color:var(--mu);line-height:1.5">Sync isn\u2019t configured yet. Add your Supabase URL and anon key to <strong>config.js</strong>, then reload.</div>';return;}
   if(sbUser){
-    el.innerHTML='<div style="font-size:14px;margin-bottom:6px">Signed in as <strong>'+(sbUser.email||'you')+'</strong></div>'+
-      '<div style="font-size:12px;color:var(--mu);font-family:\'DM Mono\',monospace;margin-bottom:16px">Last synced: <span id="sy-last">'+timeAgo(syncLast)+'</span></div>'+
-      '<button class="bp" onclick="manualSync()">Sync now</button>'+
-      '<button class="bdel" onclick="doLogout()">Sign out</button>'+
-      '<div style="font-size:11px;color:var(--mu);margin-top:14px;line-height:1.5">Your most recent save on any device is what\u2019s stored in the cloud. Open the app or tap <strong>Sync now</strong> to pull the latest before editing on another device.</div>';
+    el.innerHTML='<div style="font-size:14px;margin-bottom:14px">Signed in as <strong>'+esc(sbUser.email||'you')+'</strong></div>'+
+      '<div id="sy-conflict" style="display:none;font-size:12px;color:var(--ink);background:var(--al);border:1px solid var(--dn);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.5"><strong style="color:var(--dn)">This device and the cloud have both changed</strong> since the last sync. Pick which one to keep — the other is overwritten.</div>'+
+      '<div class="sy-cmp">'+
+        '<div class="sy-side"><div class="sy-side-l">This device</div><div class="sy-side-v" id="sy-local-sum">…</div><div class="sy-side-t" id="sy-local-t"></div></div>'+
+        '<div class="sy-side"><div class="sy-side-l">Cloud</div><div class="sy-side-v" id="sy-cloud-sum">checking…</div><div class="sy-side-t" id="sy-cloud-t"></div></div>'+
+      '</div>'+
+      '<button class="bp" onclick="forcePush()"><i class="ti ti-cloud-upload" style="vertical-align:-2px;margin-right:6px"></i>Upload — make the cloud match this device</button>'+
+      '<button class="bc2" onclick="forcePull()"><i class="ti ti-cloud-download" style="vertical-align:-2px;margin-right:6px"></i>Download — make this device match the cloud</button>'+
+      '<div style="font-size:11px;color:var(--mu);margin-top:12px;line-height:1.5">Upload keeps what you see now and replaces the cloud copy. Download replaces this device with the cloud copy. It\u2019s one or the other — nothing is merged.</div>'+
+      '<button class="bdel" onclick="doLogout()" style="margin-top:16px">Sign out</button>';
+    loadSyncCompare();
   }else{
     el.innerHTML='<div class="fg"><label class="fl">Email</label><input class="fn" id="sy-email" type="email" autocomplete="username"></div>'+
       '<div class="fg"><label class="fl">Password</label><input class="fn" id="sy-pw" type="password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()"></div>'+
@@ -2244,6 +2254,36 @@ async function doLogin(){
 }
 async function doLogout(){await sbClient.auth.signOut();sbUser=null;syncBaseline=null;syncMetaSave();renderSyncStatus();buildSyncModal();toast('Signed out. App still works locally.');}
 async function manualSync(){if(!sbUser){buildSyncModal();return;}await syncReconcile();toast('Synced.');}
+async function loadSyncCompare(){
+  const ls=document.getElementById('sy-local-sum'),lt=document.getElementById('sy-local-t');
+  if(ls)ls.textContent=(st.transactions?st.transactions.length:0)+' transactions · net '+fm(netWorth());
+  if(lt)lt.textContent=syncLastEdit?('changed '+timeAgo(new Date(syncLastEdit).toISOString())):'no local changes yet';
+  if(!sbClient||!sbUser)return;
+  try{
+    const {data}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
+    const cs=document.getElementById('sy-cloud-sum'),ct=document.getElementById('sy-cloud-t'),cf=document.getElementById('sy-conflict');
+    if(data&&data.data){
+      if(cs)cs.textContent=((data.data.transactions||[]).length)+' transactions';
+      if(ct)ct.textContent='updated '+timeAgo(data.updated_at);
+      if(cf&&syncDirty&&data.updated_at!==syncBaseline)cf.style.display='block';
+    }else{if(cs)cs.textContent='empty';if(ct)ct.textContent='nothing stored yet';}
+  }catch(e){const cs=document.getElementById('sy-cloud-sum');if(cs)cs.textContent='couldn\u2019t reach cloud';}
+}
+async function forcePush(){
+  if(!sbClient||!sbUser){buildSyncModal();return;}
+  await syncPush(false);
+  if(syncState==='ok'){try{localStorage.removeItem('ld_fin_pending');}catch(e){}closeMo('mo-sync');toast('Uploaded this device to the cloud.');}
+}
+async function forcePull(){
+  if(!sbClient||!sbUser){buildSyncModal();return;}
+  setSyncState('syncing');
+  try{
+    const {data,error}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
+    if(error||!data||!data.data||!Object.keys(data.data).length){setSyncState('error');toast('Nothing in the cloud to download.');return;}
+    adoptCloud(data.data,data.updated_at);
+    closeMo('mo-sync');toast('Downloaded the cloud copy to this device.');
+  }catch(e){setSyncState('error');toast('Couldn\u2019t reach the cloud.');}
+}
 function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},3000);}
 
 // hook modal open + periodic freshness tick
