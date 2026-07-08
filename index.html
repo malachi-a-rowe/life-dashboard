@@ -54,6 +54,12 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'EB Gara
 .sync-chip:hover{border-color:var(--hv)}
 .sync-chip i{font-size:14px}
 .sync-chip.err{color:var(--dn);border-color:var(--dn)}
+.csv-prev{max-height:300px;overflow-y:auto;border:.5px solid var(--lt);border-radius:8px;padding:2px 10px;margin-bottom:12px}
+.csv-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid var(--lt);font-size:13px}
+.csv-row:last-child{border-bottom:none}
+.csv-row.dup{opacity:.5}
+.csv-dupbadge{font-size:9px;font-family:'DM Mono',monospace;padding:1px 6px;border-radius:8px;background:var(--lt);color:var(--mu)}
+.csv-amt{font-family:'DM Mono',monospace;white-space:nowrap}
 .sl{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--sec);padding-bottom:8px;border-bottom:.5px solid var(--lt);margin-bottom:14px;font-family:'DM Mono',monospace}
 hr.rv{border:none;border-top:1.5px solid var(--hv);margin:24px 0}
 hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
@@ -441,7 +447,7 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
       <div class="sec-hdr"><span class="sec-lbl">Savings buckets</span><button class="sm-btn" onclick="openMo('mo-sav')">+ Add</button></div>
       <div id="fn-sav"></div>
       <hr class="rl">
-      <div class="sec-hdr"><span class="sec-lbl">Transactions · <span id="fn-mo2"></span></span><button class="sm-btn primary" onclick="openMo('mo-tx')">+ Add transaction</button></div>
+      <div class="sec-hdr"><span class="sec-lbl">Transactions · <span id="fn-mo2"></span></span><span style="display:flex;gap:6px"><button class="sm-btn" onclick="openCsv()">Import CSV</button><button class="sm-btn primary" onclick="openMo('mo-tx')">+ Add</button></span></div>
       <div id="fn-txs" style="max-height:320px;overflow-y:auto"></div>
     </div>
   </div>
@@ -681,6 +687,13 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
     <div style="font-size:12px;color:var(--mu)">Backend setup (~30 min, free): Plaid dev account → ~50-line Node server → deploy on Railway/Render → point this app at it. Ask me when ready.</div>
   </div>
   <button class="bp" onclick="closeMo('mo-plaid')" style="margin-top:20px">Got it</button>
+</div></div>
+
+<!-- CSV IMPORT -->
+<div class="ov" id="mo-csv"><div class="mo">
+  <div class="mt">Import CSV</div>
+  <div class="ms2">Venmo · Cash App · PayPal · Step · or any statement</div>
+  <div id="csv-body"></div>
 </div></div>
 
 <!-- SYNC -->
@@ -1617,6 +1630,162 @@ document.querySelectorAll('[data-screen]').forEach(el=>el.addEventListener('clic
 // ═══ INIT ═══
 applyTheme(st.theme);
 rDash();rHabits();rGoals();rFit();rFin();
+
+// ═══ CSV IMPORTER ═══
+// Provider presets are smart guesses at each service's column names; if a file
+// doesn't match, the mapping fallback lets you assign columns by hand.
+const PRESETS={
+  venmo:{name:'Venmo',date:['Datetime','Date'],amount:['Amount (total)','Amount (net)','Amount'],desc:['Note','Description'],hint:'Venmo app → Me → menu → Statement → Download CSV. The importer skips Venmo\u2019s header rows automatically.'},
+  cashapp:{name:'Cash App',date:['Date','Transaction Date'],amount:['Net Amount','Amount'],desc:['Notes','Name','Transaction Type'],hint:'Cash App → Activity → the account icon → Export CSV / Documents → Monthly Statements.'},
+  paypal:{name:'PayPal',date:['Date'],amount:['Net','Gross','Amount'],desc:['Name','Item Title','Type','Description'],hint:'PayPal → Activity → Statements → Download → CSV.'},
+  step:{name:'Step',date:['Date','Transaction Date','Posted Date'],amount:['Amount'],desc:['Description','Merchant','Name','Memo'],hint:'Step app → Account / Card → transactions → Export (or request a statement).'},
+  custom:{name:'Custom / other',date:[],amount:[],desc:[],hint:'Any CSV works — you\u2019ll pick which columns are the date, amount, and description.'}
+};
+let csvRows=[],csvHeaderIdx=0,csvHeaderCells=[],csvCols={date:-1,amount:-1,desc:-1},csvParsed=[],csvDup=[],csvAccount=null,csvDefCat='Other';
+
+function parseCSV(text){
+  const rows=[];let row=[],field='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i],n=text[i+1];
+    if(inQ){
+      if(c==='"'&&n==='"'){field+='"';i++;}
+      else if(c==='"'){inQ=false;}
+      else field+=c;
+    }else{
+      if(c==='"')inQ=true;
+      else if(c===','){row.push(field);field='';}
+      else if(c==='\r'){}
+      else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}
+      else field+=c;
+    }
+  }
+  if(field.length||row.length){row.push(field);rows.push(row);}
+  return rows.filter(r=>r.length&&!(r.length===1&&r[0].trim()===''));
+}
+function findHeader(rows,preset){
+  const dC=preset.date.map(s=>s.toLowerCase()),aC=preset.amount.map(s=>s.toLowerCase());
+  if(!dC.length||!aC.length)return 0;
+  for(let i=0;i<Math.min(rows.length,20);i++){
+    const cells=rows[i].map(c=>c.trim().toLowerCase());
+    if(dC.some(d=>cells.indexOf(d)>=0)&&aC.some(a=>cells.indexOf(a)>=0))return i;
+  }
+  return 0;
+}
+function resolveCol(cells,cands){
+  const lower=cells.map(h=>h.trim().toLowerCase());
+  for(const cand of cands){const idx=lower.indexOf(cand.toLowerCase());if(idx>=0)return idx;}
+  return -1;
+}
+function normDate(s){
+  s=(s||'').trim();if(!s)return null;
+  const dp=s.split(/[T ]/)[0];
+  let m=dp.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+  m=dp.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  m=dp.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+  if(m)return '20'+m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  m=dp.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if(m)return m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  const d=new Date(s);if(!isNaN(d))return dk(d);
+  return null;
+}
+function normAmount(s){
+  s=(s||'').trim();if(!s)return null;
+  let neg=false;
+  if(/^\(.*\)$/.test(s)){neg=true;s=s.slice(1,-1);}
+  if(s.indexOf('-')>=0)neg=true;
+  const cleaned=s.replace(/[^0-9.]/g,'');
+  if(!cleaned)return null;
+  const v=parseFloat(cleaned);
+  if(isNaN(v))return null;
+  return neg?-v:v;
+}
+function buildParsed(){
+  const out=[];
+  for(let i=csvHeaderIdx+1;i<csvRows.length;i++){
+    const r=csvRows[i];if(!r)continue;
+    const dt=normDate(r[csvCols.date]||''),amt=normAmount(r[csvCols.amount]||'');
+    if(!dt||amt===null)continue;
+    const ds=((csvCols.desc>=0?r[csvCols.desc]:'')||'').trim()||'(imported)';
+    const tp=amt<0?'Expense':'Income';
+    out.push({dt,am:Math.abs(amt),ds,tp,ac:csvAccount,ct:tp==='Income'?'Income':csvDefCat});
+  }
+  return out;
+}
+function existingKeys(){const set=new Set();st.transactions.forEach(t=>set.add(t.dt+'|'+t.am.toFixed(2)+'|'+(t.ds||'').trim().toLowerCase()));return set;}
+
+function openCsv(){csvAccount=st.accounts['Venmo']?'Venmo':Object.keys(st.accounts)[0];openMo('mo-csv');csvStep1();}
+function csvStep1(){
+  const accts=Object.keys(st.accounts);
+  const cats=['Food','Transportation','Personal','Entertainment','Bills','Subscriptions','Investments','Other'];
+  document.getElementById('csv-body').innerHTML=
+    '<div class="fr2"><div class="fg"><label class="fl">Import into account</label><select class="fs" id="csv-acct">'+accts.map(a=>'<option'+(a===csvAccount?' selected':'')+'>'+a+'</option>').join('')+'</select></div>'+
+    '<div class="fg"><label class="fl">Statement from</label><select class="fs" id="csv-prov">'+Object.entries(PRESETS).map(([k,p])=>'<option value="'+k+'">'+p.name+'</option>').join('')+'</select></div></div>'+
+    '<div class="fg"><label class="fl">Default category for expenses</label><select class="fs" id="csv-cat">'+cats.map(c=>'<option'+(c==='Other'?' selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
+    '<div class="fg"><label class="fl">CSV file</label><input class="fn" type="file" accept=".csv,text/csv,text/plain" id="csv-file"></div>'+
+    '<div id="csv-msg" style="font-size:12px;color:var(--dn);min-height:14px;margin-bottom:6px"></div>'+
+    '<div id="csv-hint" style="font-size:11px;color:var(--mu);margin-bottom:12px;line-height:1.5"></div>'+
+    '<button class="bp" onclick="csvParseFile()">Parse file</button>'+
+    '<button class="bc2" onclick="closeMo(\'mo-csv\')">Cancel</button>';
+  const provSel=document.getElementById('csv-prov');
+  const updHint=function(){document.getElementById('csv-hint').textContent=PRESETS[provSel.value].hint||'';};
+  provSel.onchange=updHint;updHint();
+}
+function csvParseFile(){
+  csvAccount=document.getElementById('csv-acct').value;
+  csvDefCat=document.getElementById('csv-cat').value;
+  const prov=document.getElementById('csv-prov').value;
+  const fileEl=document.getElementById('csv-file');
+  if(!fileEl.files||!fileEl.files[0]){document.getElementById('csv-msg').textContent='Choose a CSV file first.';return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    csvRows=parseCSV(e.target.result);
+    if(!csvRows.length){document.getElementById('csv-msg').textContent='Could not read any rows from that file.';return;}
+    const preset=PRESETS[prov];
+    csvHeaderIdx=findHeader(csvRows,preset);
+    csvHeaderCells=csvRows[csvHeaderIdx]||[];
+    const cd=resolveCol(csvHeaderCells,preset.date),ca=resolveCol(csvHeaderCells,preset.amount),cs=resolveCol(csvHeaderCells,preset.desc);
+    if(cd>=0&&ca>=0){csvCols={date:cd,amount:ca,desc:cs};csvPreview();}
+    else{csvStepMap(cd,ca,cs);}
+  };
+  reader.onerror=function(){document.getElementById('csv-msg').textContent='Could not read that file.';};
+  reader.readAsText(fileEl.files[0]);
+}
+function csvStepMap(cd,ca,cs){
+  const optList=function(sel,withNone){return (withNone?'<option value="-1">(none)</option>':'')+csvHeaderCells.map((h,i)=>'<option value="'+i+'"'+(i===sel?' selected':'')+'>'+(h.trim()||('Column '+(i+1)))+'</option>').join('');};
+  document.getElementById('csv-body').innerHTML=
+    '<div style="font-size:13px;color:var(--mu);margin-bottom:14px;line-height:1.5">Couldn\u2019t auto-detect this file\u2019s columns. Tell me which is which:</div>'+
+    '<div class="fg"><label class="fl">Date column</label><select class="fs" id="csv-cd">'+optList(cd,false)+'</select></div>'+
+    '<div class="fg"><label class="fl">Amount column</label><select class="fs" id="csv-ca">'+optList(ca,false)+'</select></div>'+
+    '<div class="fg"><label class="fl">Description column</label><select class="fs" id="csv-cs">'+optList(cs,true)+'</select></div>'+
+    '<button class="bp" onclick="csvApplyMap()">Preview</button>'+
+    '<button class="bc2" onclick="csvStep1()">Back</button>';
+}
+function csvApplyMap(){
+  csvCols={date:parseInt(document.getElementById('csv-cd').value),amount:parseInt(document.getElementById('csv-ca').value),desc:parseInt(document.getElementById('csv-cs').value)};
+  if(isNaN(csvCols.date)||isNaN(csvCols.amount)||csvCols.date<0||csvCols.amount<0)return;
+  csvPreview();
+}
+function csvPreview(){
+  csvParsed=buildParsed();
+  const keys=existingKeys(),seen=new Set();
+  csvDup=csvParsed.map(function(p){const k=p.dt+'|'+p.am.toFixed(2)+'|'+p.ds.trim().toLowerCase();if(keys.has(k)||seen.has(k))return true;seen.add(k);return false;});
+  const newCount=csvDup.filter(function(d){return !d;}).length,dupCount=csvDup.filter(function(d){return d;}).length;
+  if(!csvParsed.length){document.getElementById('csv-body').innerHTML='<div style="font-size:13px;color:var(--mu);margin-bottom:14px;line-height:1.5">No transactions could be parsed with the current columns. Try the mapping, or check the file.</div><button class="bc2" onclick="csvStep1()">Back</button>';return;}
+  const rowsHtml=csvParsed.map(function(p,i){return '<div class="csv-row '+(csvDup[i]?'dup':'')+'"><div style="min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.ds+'</div><div style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+fmD(p.dt)+' · '+p.ac+' · '+p.ct+'</div></div><div style="display:flex;align-items:center;gap:8px">'+(csvDup[i]?'<span class="csv-dupbadge">dup</span>':'')+'<span class="csv-amt" style="color:'+(p.tp==='Income'?'var(--up)':'var(--dn)')+'">'+(p.tp==='Income'?'+':'\u2212')+fm2(p.am)+'</span></div></div>';}).join('');
+  document.getElementById('csv-body').innerHTML=
+    '<div style="font-size:13px;margin-bottom:10px"><strong>'+newCount+'</strong> new · <span style="color:var(--mu)">'+dupCount+' duplicate'+(dupCount===1?'':'s')+' (will skip)</span></div>'+
+    '<div class="csv-prev">'+rowsHtml+'</div>'+
+    (newCount>0?'<button class="bp" onclick="csvCommit()">Import '+newCount+' transaction'+(newCount===1?'':'s')+'</button>':'<div style="font-size:12px;color:var(--mu);text-align:center;padding:8px">Nothing new to import.</div>')+
+    '<button class="bc2" onclick="csvStep1()">Back</button>';
+}
+function csvCommit(){
+  const add=csvParsed.filter(function(p,i){return !csvDup[i];});
+  add.forEach(function(p){st.transactions.push({id:uid(),dt:p.dt,ac:p.ac,ds:p.ds,ct:p.ct,tp:p.tp,am:p.am,tac:null});});
+  saveSt();closeMo('mo-csv');rFin();rDash();
+  toast(add.length+' transaction'+(add.length===1?'':'s')+' imported.');
+}
 
 // ═══ SUPABASE SYNC ═══
 // Single-user, last-write-wins cloud sync layered onto local storage.
