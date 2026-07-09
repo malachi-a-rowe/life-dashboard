@@ -2186,6 +2186,14 @@ async function cloudUpload(){
   if(cloudBusy)return; cloudBusy=true; syncMsg('',''); setChip('working');
   try{
     var s=await cloudStatus();
+    console.log("UPLOAD STATUS", {
+      state: s.state,
+      cloudTs: s.cloudTs,
+      cloudBaseline: cloudBaseline,
+      cloudDirty: cloudDirty,
+      cloudTransactions: s.cloudN,
+      localTransactions: (st.transactions || []).length
+    });
     if(s.state==='error')throw s.err;
     if(s.state==='insync'){cloudBusy=false;cloudUi='';renderSyncStatus();toast('This device already matches the cloud.');return;}
     if((s.state==='behind'||s.state==='conflict')&&!confirm('The cloud has newer changes from your other device that aren\u2019t on this device. Uploading overwrites them with this device\u2019s data.\n\nContinue?')){cloudBusy=false;cloudUi='';renderSyncStatus();buildSyncModal();return;}
