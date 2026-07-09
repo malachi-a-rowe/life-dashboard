@@ -1290,7 +1290,9 @@ function loadSt(){
   // display. The authoritative push to the cloud happens in syncReconcile — AFTER habits,
   // goals and fitness are reconciled — so a stale cloud copy can't overwrite the seed and
   // non-finance data is never at risk. A device-local flag records that a push is still owed.
-  if(needFinSeed(o)){ seedFinance(o); try{localStorage.setItem('ld_fin_pending',FIN_SEED);}catch(e){} }
+  // Finance seeding is complete and now lives in the cloud, so we no longer re-apply the tracker
+  // baseline on load — doing that overwrote new edits. Just clear any leftover pending marker.
+  try{localStorage.removeItem('ld_fin_pending');}catch(e){}
   return o;
 }
 function saveSt(){try{localStorage.setItem('ld_v10',JSON.stringify(st));}catch(e){}}
@@ -2177,15 +2179,6 @@ async function syncPull(){
 }
 async function syncReconcile(){
   await syncPull();
-  // After the pull, `st` holds the reconciled (newest) habits/goals/fitness. Now make sure
-  // finance matches the tracker seed and push it up once. Because this runs AFTER the pull, a
-  // stale cloud copy can never revert the seed, and newer non-finance data is never overwritten.
-  var pending=false; try{pending=localStorage.getItem('ld_fin_pending')===FIN_SEED;}catch(e){}
-  if(needFinSeed(st)){ seedFinance(st); _saveStLocal(); rerenderAll(); pending=true; try{localStorage.setItem('ld_fin_pending',FIN_SEED);}catch(e){} }
-  if(pending){
-    syncDirty=true; syncLastEdit=Date.now(); syncMetaSave();
-    if(sbUser){ await syncPush(true); if(syncState==='ok'){try{localStorage.removeItem('ld_fin_pending');}catch(e){}} }
-  }
 }
 function adoptCloud(cloudData,cloudTs){
   st=cloudData;_saveStLocal();
