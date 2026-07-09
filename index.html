@@ -2259,7 +2259,7 @@ async function refreshSyncModal(){
   if(s.state==='error'){if(box){box.textContent='Couldn\u2019t reach the cloud — check your connection.';box.style.color='var(--dn)';}if(cs)cs.textContent='—';return;}
   if(cs)cs.textContent=s.has?(s.cloudN+' transactions · '+timeAgo(s.cloudTs)):'empty';
   var msg,color='var(--sec)';
-  if(s.state==='insync')msg='In sync. This device and the cloud match.';
+  if(s.state==='insync')msg='In sync with the last cloud version this device checked.';
   else if(s.state==='ahead')msg='This device has changes the cloud doesn\u2019t. Upload to save them to the cloud.';
   else if(s.state==='behind')msg='The cloud is newer — updated from your other device. Download to bring those changes here.';
   else if(s.state==='conflict'){msg='Both this device and the cloud changed since the last sync. Upload or Download will overwrite one side — choose which to keep.';color='var(--dn)';}
