@@ -2190,10 +2190,9 @@ async function cloudUpload(){
     if(s.state==='insync'){cloudBusy=false;cloudUi='';renderSyncStatus();toast('This device already matches the cloud.');return;}
     if((s.state==='behind'||s.state==='conflict')&&!confirm('The cloud has newer changes from your other device that aren\u2019t on this device. Uploading overwrites them with this device\u2019s data.\n\nContinue?')){cloudBusy=false;cloudUi='';renderSyncStatus();buildSyncModal();return;}
     var nowIso=new Date().toISOString();
-    const up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'}).select(); console.log("UPSERT", up); 
+    const up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'}).select();
     if(up.error)throw up.error;
     var chk=await cloudFetch();
-    console.log("FETCH", chk); console.log("FETCH DATA", chk.data); console.log("FETCH TRANSACTIONS", chk.data?.data?.transactions?.length);
     if(chk.error)throw chk.error;
     var localN=(st.transactions||[]).length;
     var cloudN=(chk.data&&chk.data.data&&chk.data.data.transactions)?chk.data.data.transactions.length:(chk.data&&chk.data.data?0:-1);
