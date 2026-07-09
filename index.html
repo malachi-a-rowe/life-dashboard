@@ -2256,6 +2256,14 @@ async function refreshSyncModal(){
   if(!sbClient||!sbUser)return;
   var box=document.getElementById('sy-status'), cs=document.getElementById('sy-cloud-sum');
   var s=await cloudStatus();
+  console.log("REFRESH SYNC", {
+    state: s.state,
+    cloudTs: s.cloudTs,
+    cloudBaseline: cloudBaseline,
+    cloudDirty: cloudDirty,
+    cloudTransactions: s.cloudN,
+    localTransactions: (st.transactions || []).length
+  });
   if(s.cloudTs && !cloudDirty){
   setCloudBase(s.cloudTs);
   }
