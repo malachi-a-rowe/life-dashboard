@@ -2256,6 +2256,9 @@ async function refreshSyncModal(){
   if(!sbClient||!sbUser)return;
   var box=document.getElementById('sy-status'), cs=document.getElementById('sy-cloud-sum');
   var s=await cloudStatus();
+  if(s.cloudTs && !cloudDirty){
+  setCloudBase(s.cloudTs);
+  }
   if(s.state==='error'){if(box){box.textContent='Couldn\u2019t reach the cloud — check your connection.';box.style.color='var(--dn)';}if(cs)cs.textContent='—';return;}
   if(cs)cs.textContent=s.has?(s.cloudN+' transactions · '+timeAgo(s.cloudTs)):'empty';
   var msg,color='var(--sec)';
