@@ -1049,7 +1049,7 @@ const DEF_UP=[
 ];
 
 // ═══ TRANSACTIONS SEED (from Personal Finance Tracker) ═══
-const FIN_SEED='tracker-20260708b';
+const FIN_SEED='tracker-20260708c';
 function needFinSeed(o){return !o.finSeed||o.finSeed!==FIN_SEED;}
 function seedFinance(o){o.accounts=JSON.parse(JSON.stringify(DEF_ACCTS));o.transactions=JSON.parse(JSON.stringify(DEF_TX));o.finSeed=FIN_SEED;}
 const DEF_TX=[
@@ -2197,7 +2197,7 @@ async function syncPush(silent){
   setSyncState('syncing');
   try{
     const nowIso=new Date().toISOString();
-    const {data,error}=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso}).select('updated_at').single();
+    const {data,error}=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'}).select('updated_at').single();
     if(error){setSyncState('error');if(!silent)toast('Sync failed: '+error.message);return;}
     syncBaseline=data.updated_at;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
     setSyncState('ok');
@@ -2231,6 +2231,7 @@ function buildSyncModal(){
         '<div class="sy-side"><div class="sy-side-l">This device</div><div class="sy-side-v" id="sy-local-sum">…</div><div class="sy-side-t" id="sy-local-t"></div></div>'+
         '<div class="sy-side"><div class="sy-side-l">Cloud</div><div class="sy-side-v" id="sy-cloud-sum">checking…</div><div class="sy-side-t" id="sy-cloud-t"></div></div>'+
       '</div>'+
+      '<div id="sy-err" style="display:none;font-size:12px;color:var(--ink);background:var(--al);border:1px solid var(--dn);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.5"></div>'+
       '<button class="bp" onclick="forcePush()"><i class="ti ti-cloud-upload" style="vertical-align:-2px;margin-right:6px"></i>Upload — make the cloud match this device</button>'+
       '<button class="bc2" onclick="forcePull()"><i class="ti ti-cloud-download" style="vertical-align:-2px;margin-right:6px"></i>Download — make this device match the cloud</button>'+
       '<div style="font-size:11px;color:var(--mu);margin-top:12px;line-height:1.5">Upload keeps what you see now and replaces the cloud copy. Download replaces this device with the cloud copy. It\u2019s one or the other — nothing is merged.</div>'+
@@ -2269,22 +2270,42 @@ async function loadSyncCompare(){
     }else{if(cs)cs.textContent='empty';if(ct)ct.textContent='nothing stored yet';}
   }catch(e){const cs=document.getElementById('sy-cloud-sum');if(cs)cs.textContent='couldn\u2019t reach cloud';}
 }
+function syncErr(msg){var e=document.getElementById('sy-err');if(e){e.style.display='block';e.textContent=msg;}else toast(msg);}
 async function forcePush(){
   if(!sbClient||!sbUser){buildSyncModal();return;}
-  await syncPush(false);
-  if(syncState==='ok'){try{localStorage.removeItem('ld_fin_pending');}catch(e){}closeMo('mo-sync');toast('Uploaded this device to the cloud.');}
+  var e=document.getElementById('sy-err');if(e)e.style.display='none';
+  setSyncState('syncing');
+  try{
+    const nowIso=new Date().toISOString();
+    const {error}=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'});
+    if(error)throw error;
+    // Verify the write actually landed — catches silent Row Level Security / permission problems,
+    // where the upload "succeeds" but the cloud row never changes.
+    const {data:chk,error:cerr}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
+    if(cerr)throw cerr;
+    const localN=(st.transactions||[]).length;
+    const cloudN=(chk&&chk.data&&chk.data.transactions)?chk.data.transactions.length:(chk&&chk.data?0:-1);
+    if(cloudN!==localN){throw new Error('the cloud still shows '+(cloudN<0?'no saved row':cloudN+' transactions')+' right after the upload (this device has '+localN+'). The write is being rejected — this is a Supabase Row Level Security setting. Apply the SQL fix, then try Upload again.');}
+    syncBaseline=chk.updated_at;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
+    try{localStorage.removeItem('ld_fin_pending');}catch(_e){}
+    setSyncState('ok');closeMo('mo-sync');toast('Uploaded — cloud now matches this device ('+localN+' transactions).');
+  }catch(err){setSyncState('error');syncErr('Upload failed: '+(err&&err.message?err.message:err));}
 }
 async function forcePull(){
   if(!sbClient||!sbUser){buildSyncModal();return;}
+  var e=document.getElementById('sy-err');if(e)e.style.display='none';
   setSyncState('syncing');
   try{
     const {data,error}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
-    if(error||!data||!data.data||!Object.keys(data.data).length){setSyncState('error');toast('Nothing in the cloud to download.');return;}
+    if(error)throw error;
+    if(!data||!data.data||!Object.keys(data.data).length){setSyncState('error');syncErr('There\u2019s nothing in the cloud to download yet.');return;}
+    const cloudN=(data.data.transactions||[]).length, localN=(st.transactions||[]).length;
+    if(cloudN<localN && !confirm('The cloud copy has fewer transactions ('+cloudN+') than this device ('+localN+'). Downloading replaces this device with the smaller cloud copy — you may lose recent entries. Continue?')){setSyncState('ok');return;}
     adoptCloud(data.data,data.updated_at);
-    closeMo('mo-sync');toast('Downloaded the cloud copy to this device.');
-  }catch(e){setSyncState('error');toast('Couldn\u2019t reach the cloud.');}
+    closeMo('mo-sync');toast('Downloaded the cloud copy ('+cloudN+' transactions).');
+  }catch(err){setSyncState('error');syncErr('Download failed: '+(err&&err.message?err.message:err));}
 }
-function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},3000);}
+function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;pointer-events:none;opacity:0;transition:opacity .3s;max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},3000);}
 
 // hook modal open + periodic freshness tick
 const _openMoSync=openMo;
