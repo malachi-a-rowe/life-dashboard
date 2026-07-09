@@ -1286,12 +1286,8 @@ function loadSt(){
       }
     });
   });
-  // Bring finance (accounts + transactions) in line with the tracker for immediate/offline
-  // display. The authoritative push to the cloud happens in syncReconcile — AFTER habits,
-  // goals and fitness are reconciled — so a stale cloud copy can't overwrite the seed and
-  // non-finance data is never at risk. A device-local flag records that a push is still owed.
-  // Finance seeding is complete and now lives in the cloud, so we no longer re-apply the tracker
-  // baseline on load — doing that overwrote new edits. Just clear any leftover pending marker.
+  // Finance seeding was completed in an earlier version and now lives in your data/cloud, so we
+  // no longer re-apply the tracker baseline on load. Clear any leftover marker from that mechanism.
   try{localStorage.removeItem('ld_fin_pending');}catch(e){}
   return o;
 }
@@ -2121,189 +2117,163 @@ function csvCommit(){
   toast(add.length+' transaction'+(add.length===1?'':'s')+' imported.');
 }
 
-// ═══ SUPABASE SYNC ═══
-// Single-user, last-write-wins cloud sync layered onto local storage.
-// The app keeps working fully offline / signed out; sync switches on at login.
-let sbClient=null, sbUser=null, syncDirty=false, syncBaseline=null, syncLastEdit=0, syncLast=null, syncState='idle', pushTimer=null;
+// ═══ CLOUD SYNC — manual, explicit ═══
+// Two buttons, each strictly one-directional. Nothing moves on its own; signing in only
+// connects the buttons. A confirmation appears ONLY when an action would overwrite the other
+// side's changes. No background sync, no auto direction-picking, no cross-device clock
+// comparison, no re-seeding. By construction it cannot silently revert you.
+let sbClient=null, sbUser=null, cloudBusy=false, cloudUi='';
+let cloudBaseline=null;   // the cloud updated_at this device was last in sync with
+let cloudDirty=false;     // this device has local edits not yet uploaded
+try{cloudBaseline=localStorage.getItem('ld_cloud_base')||null;}catch(e){}
+try{cloudDirty=localStorage.getItem('ld_cloud_dirty')==='1';}catch(e){}
 const _saveStLocal = saveSt; // original local-only save
 
-function syncMetaLoad(){try{const m=JSON.parse(localStorage.getItem('ld_sync_meta')||'{}');syncBaseline=m.baseline||null;syncLast=m.last||null;syncLastEdit=m.edit||0;syncDirty=!!m.dirty;}catch(e){}}
-function syncMetaSave(){try{localStorage.setItem('ld_sync_meta',JSON.stringify({baseline:syncBaseline,last:syncLast,edit:syncLastEdit,dirty:syncDirty}));}catch(e){}}
+function setCloudBase(ts){cloudBaseline=ts||null;try{if(ts)localStorage.setItem('ld_cloud_base',ts);else localStorage.removeItem('ld_cloud_base');}catch(e){}}
+function setCloudDirty(v){cloudDirty=!!v;try{if(v)localStorage.setItem('ld_cloud_dirty','1');else localStorage.removeItem('ld_cloud_dirty');}catch(e){}}
 function rerenderAll(){rDash();rHabits();rGoals();rFit();rFin();}
+function timeAgo(iso){if(!iso)return 'never';var s=Math.floor((Date.now()-Date.parse(iso))/1000);if(s<60)return 'just now';var m=Math.floor(s/60);if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
 
-// Wrap saveSt so every local save also queues a cloud push.
-saveSt=function(){
-  _saveStLocal();
-  syncLastEdit=Date.now();syncDirty=true;syncMetaSave();renderSyncStatus();
-  if(sbUser){clearTimeout(pushTimer);pushTimer=setTimeout(function(){syncPush(true);},1500);}
-};
+// Every local save marks this device "ahead of the cloud" — but NEVER pushes on its own.
+saveSt=function(){ _saveStLocal(); setCloudDirty(true); renderSyncStatus(); };
 
 function initSupabase(){
   if(!window.supabase||!window.SUPABASE_URL||!window.SUPABASE_ANON_KEY||window.SUPABASE_URL.indexOf('YOUR-')>=0){renderSyncStatus();return;}
   try{sbClient=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_KEY);}catch(e){renderSyncStatus();return;}
-  syncMetaLoad();
-  sbClient.auth.getSession().then(function(r){
-    if(r.data&&r.data.session){sbUser=r.data.session.user;onSignedIn();}
-    renderSyncStatus();
-  });
-  sbClient.auth.onAuthStateChange(function(_e,session){
-    sbUser=session?session.user:null;
-    if(sbUser){onSignedIn();}else{renderSyncStatus();}
-    if(document.getElementById('mo-sync').classList.contains('open'))buildSyncModal();
-  });
+  sbClient.auth.getSession().then(function(r){if(r.data&&r.data.session)sbUser=r.data.session.user;afterAuth();});
+  sbClient.auth.onAuthStateChange(function(_e,session){sbUser=session?session.user:null;afterAuth();});
 }
-function onSignedIn(){renderSyncStatus();syncReconcile();}
+// Signing in / out only refreshes the UI. It never moves data.
+function afterAuth(){renderSyncStatus();var m=document.getElementById('mo-sync');if(m&&m.classList.contains('open'))buildSyncModal();}
 
-function setSyncState(s){syncState=s;renderSyncStatus();}
-function timeAgo(iso){if(!iso)return 'never';const s=Math.floor((Date.now()-Date.parse(iso))/1000);if(s<60)return 'just now';const m=Math.floor(s/60);if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
-
-async function syncPull(){
-  if(!sbClient||!sbUser)return;
-  setSyncState('syncing');
-  try{
-    const {data,error}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
-    if(error){setSyncState('error');return;}
-    if(!data){await syncPush(true);return;} // nothing in the cloud yet → seed it
-    const cloudTs=data.updated_at;
-    if(!syncDirty){
-      // No unsynced local changes — safe to take the cloud copy if it differs. Nothing is lost.
-      const has=data.data&&Object.keys(data.data).length>0;
-      if(has&&cloudTs!==syncBaseline){adoptCloud(data.data,cloudTs);}
-      else{syncBaseline=cloudTs;syncMetaSave();setSyncState('ok');}
-    }else{
-      // Local has unsynced changes.
-      if(cloudTs===syncBaseline){await syncPush(true);}   // cloud untouched since our last sync → push local up
-      else{setSyncState('conflict');}                       // both sides changed → don't guess; let the user choose (Upload/Download)
-    }
-  }catch(e){setSyncState('error');}
-}
-async function syncReconcile(){
-  await syncPull();
-}
-function adoptCloud(cloudData,cloudTs){
-  st=cloudData;_saveStLocal();
-  syncBaseline=cloudTs;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
-  rerenderAll();setSyncState('ok');
-}
-async function syncPush(silent){
-  if(!sbClient||!sbUser)return;
-  setSyncState('syncing');
-  try{
-    const nowIso=new Date().toISOString();
-    const {data,error}=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'}).select('updated_at').single();
-    if(error){setSyncState('error');if(!silent)toast('Sync failed: '+error.message);return;}
-    syncBaseline=data.updated_at;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
-    setSyncState('ok');
-  }catch(e){setSyncState('error');}
-}
-
+function setChip(s){cloudUi=s;renderSyncStatus();}
 function renderSyncStatus(){
-  const chip=document.getElementById('sync-chip');
+  var chip=document.getElementById('sync-chip');
   if(chip){
-    let ic,tx,err=false;
-    if(!sbClient){ic='ti-cloud-off';tx='Sync off';}
+    var ic,tx,cls='';
+    if(!sbClient){ic='ti-cloud-off';tx='Cloud off';}
     else if(!sbUser){ic='ti-cloud-off';tx='Sign in';}
-    else if(syncState==='syncing'){ic='ti-cloud-up';tx='Syncing…';}
-    else if(syncState==='error'){ic='ti-cloud-x';tx='Error';err=true;}
-    else if(syncState==='conflict'){ic='ti-cloud-question';tx='Choose sync';err=true;}
-    else{ic='ti-cloud-check';tx=timeAgo(syncLast);}
+    else if(cloudUi==='working'){ic='ti-cloud-up';tx='Working…';}
+    else if(cloudUi==='error'){ic='ti-cloud-x';tx='Sync';cls=' err';}
+    else if(cloudDirty){ic='ti-cloud-up';tx='Upload pending';}
+    else{ic='ti-cloud-check';tx='Backed up';}
     chip.innerHTML='<i class="ti '+ic+'"></i> '+tx;
-    chip.className='sync-chip'+(err?' err':'');
+    chip.className='sync-chip'+cls;
   }
-  const sb=document.getElementById('sb-sync-status');
-  if(sb)sb.textContent=!sbClient?'Sync off':(!sbUser?'Not signed in':(syncState==='syncing'?'Syncing…':syncState==='error'?'Sync error':syncState==='conflict'?'Tap to choose sync':'Synced '+timeAgo(syncLast)));
-  const last=document.getElementById('sy-last');if(last)last.textContent=timeAgo(syncLast);
+  var sb=document.getElementById('sb-sync-status');
+  if(sb)sb.textContent=!sbClient?'Cloud off':(!sbUser?'Not signed in':(cloudUi==='working'?'Working…':cloudDirty?'Changes not uploaded':'Backed up'));
 }
+
+async function cloudFetch(){return await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();}
+// Relationship between this device and the cloud — pure comparison, no data movement.
+async function cloudStatus(){
+  var r=await cloudFetch();
+  if(r.error)return {state:'error',err:r.error};
+  var d=r.data, has=!!(d&&d.data&&Object.keys(d.data).length>0);
+  var cloudTs=d?d.updated_at:null, cloudN=has?((d.data.transactions||[]).length):0;
+  var state;
+  if(!has)state='empty';
+  else if(cloudTs===cloudBaseline)state=cloudDirty?'ahead':'insync';
+  else state=cloudDirty?'conflict':'behind';
+  return {state:state,cloudTs:cloudTs,cloudN:cloudN,has:has,cloudData:d?d.data:null};
+}
+
+function syncMsg(text,kind){var e=document.getElementById('sy-err');if(!e){if(text)toast(text);return;}if(!text){e.style.display='none';e.textContent='';return;}e.style.display='block';e.textContent=text;e.style.borderColor=(kind==='err'?'var(--dn)':'var(--lt)');}
+
+// UPLOAD → make the cloud match this device.
+async function cloudUpload(){
+  if(!sbClient||!sbUser){buildSyncModal();return;}
+  if(cloudBusy)return; cloudBusy=true; syncMsg('',''); setChip('working');
+  try{
+    var s=await cloudStatus();
+    if(s.state==='error')throw s.err;
+    if(s.state==='insync'){cloudBusy=false;cloudUi='';renderSyncStatus();toast('This device already matches the cloud.');return;}
+    if((s.state==='behind'||s.state==='conflict')&&!confirm('The cloud has newer changes from your other device that aren\u2019t on this device. Uploading overwrites them with this device\u2019s data.\n\nContinue?')){cloudBusy=false;cloudUi='';renderSyncStatus();buildSyncModal();return;}
+    var nowIso=new Date().toISOString();
+    var up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'});
+    if(up.error)throw up.error;
+    var chk=await cloudFetch();
+    if(chk.error)throw chk.error;
+    var localN=(st.transactions||[]).length;
+    var cloudN=(chk.data&&chk.data.data&&chk.data.data.transactions)?chk.data.data.transactions.length:(chk.data&&chk.data.data?0:-1);
+    if(cloudN!==localN)throw new Error('the cloud still shows '+(cloudN<0?'no saved row':cloudN+' transactions')+' right after uploading ('+localN+' on this device). The write was rejected — check the Supabase Row Level Security policies.');
+    setCloudBase(chk.data.updated_at); setCloudDirty(false); cloudBusy=false; cloudUi='';
+    renderSyncStatus(); closeMo('mo-sync'); toast('Uploaded — the cloud now matches this device.');
+  }catch(err){cloudBusy=false;setChip('error');syncMsg('Upload failed: '+(err&&err.message?err.message:err),'err');}
+}
+
+// DOWNLOAD → make this device match the cloud.
+async function cloudDownload(){
+  if(!sbClient||!sbUser){buildSyncModal();return;}
+  if(cloudBusy)return; cloudBusy=true; syncMsg('',''); setChip('working');
+  try{
+    var s=await cloudStatus();
+    if(s.state==='error')throw s.err;
+    if(!s.has){cloudBusy=false;setChip('error');syncMsg('There is nothing in the cloud to download yet. Upload from a device first.','err');return;}
+    if(s.state==='insync'){cloudBusy=false;cloudUi='';renderSyncStatus();toast('This device already matches the cloud.');return;}
+    if(cloudDirty&&!confirm('This device has changes that aren\u2019t in the cloud yet. Downloading replaces this device with the cloud copy and discards those changes.\n\nContinue?')){cloudBusy=false;cloudUi='';renderSyncStatus();buildSyncModal();return;}
+    st=s.cloudData; _saveStLocal(); rerenderAll();
+    setCloudBase(s.cloudTs); setCloudDirty(false); cloudBusy=false; cloudUi='';
+    renderSyncStatus(); closeMo('mo-sync'); toast('Downloaded — this device now matches the cloud.');
+  }catch(err){cloudBusy=false;setChip('error');syncMsg('Download failed: '+(err&&err.message?err.message:err),'err');}
+}
+
 function buildSyncModal(){
-  const el=document.getElementById('sync-body');if(!el)return;
-  if(!sbClient){el.innerHTML='<div style="font-size:13px;color:var(--mu);line-height:1.5">Sync isn\u2019t configured yet. Add your Supabase URL and anon key to <strong>config.js</strong>, then reload.</div>';return;}
-  if(sbUser){
-    el.innerHTML='<div style="font-size:14px;margin-bottom:14px">Signed in as <strong>'+esc(sbUser.email||'you')+'</strong></div>'+
-      '<div id="sy-conflict" style="display:none;font-size:12px;color:var(--ink);background:var(--al);border:1px solid var(--dn);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.5"><strong style="color:var(--dn)">This device and the cloud have both changed</strong> since the last sync. Pick which one to keep — the other is overwritten.</div>'+
-      '<div class="sy-cmp">'+
-        '<div class="sy-side"><div class="sy-side-l">This device</div><div class="sy-side-v" id="sy-local-sum">…</div><div class="sy-side-t" id="sy-local-t"></div></div>'+
-        '<div class="sy-side"><div class="sy-side-l">Cloud</div><div class="sy-side-v" id="sy-cloud-sum">checking…</div><div class="sy-side-t" id="sy-cloud-t"></div></div>'+
-      '</div>'+
-      '<div id="sy-err" style="display:none;font-size:12px;color:var(--ink);background:var(--al);border:1px solid var(--dn);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.5"></div>'+
-      '<button class="bp" onclick="forcePush()"><i class="ti ti-cloud-upload" style="vertical-align:-2px;margin-right:6px"></i>Upload — make the cloud match this device</button>'+
-      '<button class="bc2" onclick="forcePull()"><i class="ti ti-cloud-download" style="vertical-align:-2px;margin-right:6px"></i>Download — make this device match the cloud</button>'+
-      '<div style="font-size:11px;color:var(--mu);margin-top:12px;line-height:1.5">Upload keeps what you see now and replaces the cloud copy. Download replaces this device with the cloud copy. It\u2019s one or the other — nothing is merged.</div>'+
-      '<button class="bdel" onclick="doLogout()" style="margin-top:16px">Sign out</button>';
-    loadSyncCompare();
-  }else{
-    el.innerHTML='<div class="fg"><label class="fl">Email</label><input class="fn" id="sy-email" type="email" autocomplete="username"></div>'+
+  var el=document.getElementById('sync-body');if(!el)return;
+  if(!sbClient){el.innerHTML='<div style="font-size:13px;color:var(--mu);line-height:1.5">Cloud sync isn\u2019t configured. Add your Supabase URL and anon key to <strong>config.js</strong>, then reload.</div>';return;}
+  if(!sbUser){
+    el.innerHTML='<div style="font-size:13px;color:var(--mu);line-height:1.5;margin-bottom:14px">Sign in to connect this device to your cloud. Signing in only connects it — it never moves your data. You choose when to Upload or Download.</div>'+
+      '<div class="fg"><label class="fl">Email</label><input class="fn" id="sy-email" type="email" autocomplete="username"></div>'+
       '<div class="fg"><label class="fl">Password</label><input class="fn" id="sy-pw" type="password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()"></div>'+
       '<div id="sy-msg" style="font-size:12px;color:var(--dn);margin-bottom:10px;min-height:14px"></div>'+
-      '<button class="bp" onclick="doLogin()">Sign in</button>'+
-      '<div style="font-size:11px;color:var(--mu);margin-top:14px;line-height:1.5">Use the email + password you created in Supabase. The app works offline whether or not you\u2019re signed in.</div>';
+      '<button class="bp" onclick="doLogin()">Sign in</button>';
+    return;
   }
+  el.innerHTML='<div style="font-size:13px;margin-bottom:12px">Signed in as <strong>'+esc(sbUser.email||'you')+'</strong></div>'+
+    '<div id="sy-status" style="font-size:13px;line-height:1.5;color:var(--sec);background:var(--sf);border:.5px solid var(--lt);border-radius:8px;padding:10px 12px;margin-bottom:14px">Checking the cloud…</div>'+
+    '<div class="sy-cmp">'+
+      '<div class="sy-side"><div class="sy-side-l">This device</div><div class="sy-side-v" id="sy-local-sum">…</div></div>'+
+      '<div class="sy-side"><div class="sy-side-l">Cloud</div><div class="sy-side-v" id="sy-cloud-sum">…</div></div>'+
+    '</div>'+
+    '<div id="sy-err" style="display:none;font-size:12px;color:var(--ink);background:var(--al);border:1px solid var(--dn);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.5"></div>'+
+    '<button class="bp" onclick="cloudUpload()"><i class="ti ti-cloud-upload" style="vertical-align:-2px;margin-right:6px"></i>Upload — this device → cloud</button>'+
+    '<button class="bc2" onclick="cloudDownload()"><i class="ti ti-cloud-download" style="vertical-align:-2px;margin-right:6px"></i>Download — cloud → this device</button>'+
+    '<div style="font-size:11px;color:var(--mu);margin-top:12px;line-height:1.5">Upload replaces the cloud with this device. Download replaces this device with the cloud. You\u2019re only asked to confirm if it would overwrite changes on the other side.</div>'+
+    '<button class="bdel" onclick="doLogout()" style="margin-top:16px">Sign out</button>';
+  refreshSyncModal();
 }
+async function refreshSyncModal(){
+  var ls=document.getElementById('sy-local-sum');
+  if(ls)ls.textContent=(st.transactions?st.transactions.length:0)+' transactions';
+  if(!sbClient||!sbUser)return;
+  var box=document.getElementById('sy-status'), cs=document.getElementById('sy-cloud-sum');
+  var s=await cloudStatus();
+  if(s.state==='error'){if(box){box.textContent='Couldn\u2019t reach the cloud — check your connection.';box.style.color='var(--dn)';}if(cs)cs.textContent='—';return;}
+  if(cs)cs.textContent=s.has?(s.cloudN+' transactions · '+timeAgo(s.cloudTs)):'empty';
+  var msg,color='var(--sec)';
+  if(s.state==='insync')msg='In sync. This device and the cloud match.';
+  else if(s.state==='ahead')msg='This device has changes the cloud doesn\u2019t. Upload to save them to the cloud.';
+  else if(s.state==='behind')msg='The cloud is newer — updated from your other device. Download to bring those changes here.';
+  else if(s.state==='conflict'){msg='Both this device and the cloud changed since the last sync. Upload or Download will overwrite one side — choose which to keep.';color='var(--dn)';}
+  else if(s.state==='empty')msg='The cloud is empty. Upload to put this device\u2019s data there.';
+  if(box){box.textContent=msg;box.style.color=color;}
+}
+
 async function doLogin(){
-  const em=document.getElementById('sy-email').value.trim(),pw=document.getElementById('sy-pw').value,msg=document.getElementById('sy-msg');
+  var em=document.getElementById('sy-email').value.trim(),pw=document.getElementById('sy-pw').value,msg=document.getElementById('sy-msg');
   if(!em||!pw){if(msg)msg.textContent='Enter email and password.';return;}
   if(msg)msg.textContent='Signing in…';
-  const {error}=await sbClient.auth.signInWithPassword({email:em,password:pw});
-  if(error){if(msg)msg.textContent=error.message;return;}
-  closeMo('mo-sync');toast('Signed in — syncing.');
+  var r=await sbClient.auth.signInWithPassword({email:em,password:pw});
+  if(r.error){if(msg)msg.textContent=r.error.message;return;}
+  sbUser=r.data.user; renderSyncStatus(); buildSyncModal(); toast('Signed in. Use Upload or Download when you want to sync.');
 }
-async function doLogout(){await sbClient.auth.signOut();sbUser=null;syncBaseline=null;syncMetaSave();renderSyncStatus();buildSyncModal();toast('Signed out. App still works locally.');}
-async function manualSync(){if(!sbUser){buildSyncModal();return;}await syncReconcile();toast('Synced.');}
-async function loadSyncCompare(){
-  const ls=document.getElementById('sy-local-sum'),lt=document.getElementById('sy-local-t');
-  if(ls)ls.textContent=(st.transactions?st.transactions.length:0)+' transactions · net '+fm(netWorth());
-  if(lt)lt.textContent=syncLastEdit?('changed '+timeAgo(new Date(syncLastEdit).toISOString())):'no local changes yet';
-  if(!sbClient||!sbUser)return;
-  try{
-    const {data}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
-    const cs=document.getElementById('sy-cloud-sum'),ct=document.getElementById('sy-cloud-t'),cf=document.getElementById('sy-conflict');
-    if(data&&data.data){
-      if(cs)cs.textContent=((data.data.transactions||[]).length)+' transactions';
-      if(ct)ct.textContent='updated '+timeAgo(data.updated_at);
-      if(cf&&syncDirty&&data.updated_at!==syncBaseline)cf.style.display='block';
-    }else{if(cs)cs.textContent='empty';if(ct)ct.textContent='nothing stored yet';}
-  }catch(e){const cs=document.getElementById('sy-cloud-sum');if(cs)cs.textContent='couldn\u2019t reach cloud';}
-}
-function syncErr(msg){var e=document.getElementById('sy-err');if(e){e.style.display='block';e.textContent=msg;}else toast(msg);}
-async function forcePush(){
-  if(!sbClient||!sbUser){buildSyncModal();return;}
-  var e=document.getElementById('sy-err');if(e)e.style.display='none';
-  setSyncState('syncing');
-  try{
-    const nowIso=new Date().toISOString();
-    const {error}=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'});
-    if(error)throw error;
-    // Verify the write actually landed — catches silent Row Level Security / permission problems,
-    // where the upload "succeeds" but the cloud row never changes.
-    const {data:chk,error:cerr}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
-    if(cerr)throw cerr;
-    const localN=(st.transactions||[]).length;
-    const cloudN=(chk&&chk.data&&chk.data.transactions)?chk.data.transactions.length:(chk&&chk.data?0:-1);
-    if(cloudN!==localN){throw new Error('the cloud still shows '+(cloudN<0?'no saved row':cloudN+' transactions')+' right after the upload (this device has '+localN+'). The write is being rejected — this is a Supabase Row Level Security setting. Apply the SQL fix, then try Upload again.');}
-    syncBaseline=chk.updated_at;syncLast=new Date().toISOString();syncDirty=false;syncMetaSave();
-    try{localStorage.removeItem('ld_fin_pending');}catch(_e){}
-    setSyncState('ok');closeMo('mo-sync');toast('Uploaded — cloud now matches this device ('+localN+' transactions).');
-  }catch(err){setSyncState('error');syncErr('Upload failed: '+(err&&err.message?err.message:err));}
-}
-async function forcePull(){
-  if(!sbClient||!sbUser){buildSyncModal();return;}
-  var e=document.getElementById('sy-err');if(e)e.style.display='none';
-  setSyncState('syncing');
-  try{
-    const {data,error}=await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();
-    if(error)throw error;
-    if(!data||!data.data||!Object.keys(data.data).length){setSyncState('error');syncErr('There\u2019s nothing in the cloud to download yet.');return;}
-    const cloudN=(data.data.transactions||[]).length, localN=(st.transactions||[]).length;
-    if(cloudN<localN && !confirm('The cloud copy has fewer transactions ('+cloudN+') than this device ('+localN+'). Downloading replaces this device with the smaller cloud copy — you may lose recent entries. Continue?')){setSyncState('ok');return;}
-    adoptCloud(data.data,data.updated_at);
-    closeMo('mo-sync');toast('Downloaded the cloud copy ('+cloudN+' transactions).');
-  }catch(err){setSyncState('error');syncErr('Download failed: '+(err&&err.message?err.message:err));}
-}
+async function doLogout(){try{await sbClient.auth.signOut();}catch(e){} sbUser=null; renderSyncStatus(); buildSyncModal(); toast('Signed out. The app still works on this device.');}
+
 function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:13px;z-index:300;pointer-events:none;opacity:0;transition:opacity .3s;max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},3000);}
 
-// hook modal open + periodic freshness tick
+// Build the sync panel whenever it opens.
 const _openMoSync=openMo;
 openMo=function(id){_openMoSync(id);if(id==='mo-sync')buildSyncModal();};
-setInterval(function(){if(sbUser&&syncState==='ok')renderSyncStatus();},30000);
 
 initSupabase();
 
