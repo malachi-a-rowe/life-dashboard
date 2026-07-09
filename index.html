@@ -2190,7 +2190,8 @@ async function cloudUpload(){
     if(s.state==='insync'){cloudBusy=false;cloudUi='';renderSyncStatus();toast('This device already matches the cloud.');return;}
     if((s.state==='behind'||s.state==='conflict')&&!confirm('The cloud has newer changes from your other device that aren\u2019t on this device. Uploading overwrites them with this device\u2019s data.\n\nContinue?')){cloudBusy=false;cloudUi='';renderSyncStatus();buildSyncModal();return;}
     var nowIso=new Date().toISOString();
-    var up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'});
+    const up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'}).select(); 
+    console.log("UPSERT", up);
     if(up.error)throw up.error;
     var chk=await cloudFetch();
     if(chk.error)throw chk.error;
