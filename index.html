@@ -1853,8 +1853,9 @@ function coolMobSection(){
 function nutSection(day){
   var bw=(st.bodyWt&&+st.bodyWt)||0;
   var pro=bw?('Protein target ~'+Math.round(bw*0.9)+'–'+Math.round(bw*1.2)+' g today'):'Add your bodyweight in Update PRs for a protein target';
-  return '<div class="ex-sec"><i class="ti ti-apple" style="font-size:12px;vertical-align:-1px;color:var(--cn)"></i> Fuel · before & after</div>'+
-    '<div class="plan-meta" style="margin-top:2px"><div>'+(NUT[day.int]||NUT.mod)+'</div><div style="margin-top:5px;color:var(--sec)"><strong>'+pro+'</strong></div></div>';
+  return '<div class="ex-sec"><i class="ti ti-apple" style="font-size:13px;vertical-align:-1px;color:var(--cn)"></i> Fuel · before & after</div>'+
+    '<div style="font-size:13.5px;color:var(--sec);line-height:1.6;padding:6px 0 2px">'+(NUT[day.int]||NUT.mod)+'</div>'+
+    '<div style="font-size:13.5px;color:var(--ink);font-weight:500;margin-top:5px">'+pro+'</div>';
 }
 // ═══ PROGRESSION ENGINE (deterministic) ═══
 function round5(w){return Math.round((+w||0)/5)*5;}
@@ -2237,7 +2238,8 @@ function rFin(){
   const ck=acctBal('USAA Checking')||0;const unpaid=st.upcoming.filter(u=>!u.done&&u.type!=='Credit Card Payment').reduce((s,u)=>s+u.amt,0);
   document.getElementById('fn-stss').textContent='Checking '+fm2(ck)+' · Unpaid obligations '+fm(unpaid);
   (function(){
-    var srcs=(st.finPlan&&st.finPlan.incomeSources)||[], dests=allDestinations();
+    ensureFinPlan();
+    var srcs=st.finPlan.incomeSources, dests=allDestinations();
     var incE=incExpected(), incA=incActual(), allocP=allocPlanned(), allocA=allocActual(), ta=incE-allocP;
     var h='<div class="pl-sec" style="margin-top:0">Income · expected vs actual</div>'+
       '<div class="pl-hdr"><span>Source</span><span>Expected</span><span>Actual</span><span></span></div>';
@@ -2294,7 +2296,7 @@ function renderTxList(){
   const q=(txQuery||'').trim().toLowerCase();
   let base=st.transactions.filter(function(t){return txView==='all'||t.dt.startsWith(curMo());});
   if(q)base=base.filter(function(t){return ((t.ds||'')+' '+(t.ac||'')+' '+(t.ct||'')+' '+(t.tac||'')+' '+(t.tp||'')).toLowerCase().indexOf(q)>=0;});
-  base=base.slice().sort(function(a,b){return a.dt===b.dt?(a.id<b.id?1:-1):b.dt.localeCompare(a.dt);});
+  base=base.slice(); // entry order — matches the order rows were added / imported, to line up with the tracker
   cont.style.maxHeight=txView==='all'?'460px':'320px';
   if(!base.length){cont.innerHTML='<div style="font-size:13px;color:var(--mu);font-style:italic;padding:8px 0">'+(q?'No transactions match “'+esc(q)+'”.':(txView==='all'?'No transactions yet. Import your ledger (Import → Full ledger) or add one — every number on this page derives from this list.':'No transactions this month. Every number above derives from this list.'))+'</div>';return;}
   var inc=0,exp=0;base.forEach(function(t){if(t.tp==='Income')inc+=t.am;else if(t.tp==='Expense')exp+=t.am;});
@@ -2338,10 +2340,11 @@ function saveUp(){const item=document.getElementById('nu-item').value.trim();if(
 function openEditUp(id){var u=st.upcoming.find(function(x){return x.id===id;});if(!u)return;openMo('mo-up');editingUpId=id;document.getElementById('mu-title').textContent='Edit upcoming bill';document.getElementById('mu-save').textContent='Save changes';document.getElementById('mu-del').style.display='block';document.getElementById('nu-item').value=u.item;document.getElementById('nu-amt').value=u.amt;document.getElementById('nu-due').value=u.due;ensureOpt('nu-tp',u.type);ensureOpt('nu-ac',u.ac);document.getElementById('nu-freq').value=u.freq||'monthly';}
 function delUpModal(){if(editingUpId){st.upcoming=st.upcoming.filter(function(u){return u.id!==editingUpId;});editingUpId=null;saveSt();}closeMo('mo-up');rFin();}
 function saveSrc(id,field,val){var s=((st.finPlan&&st.finPlan.incomeSources)||[]).find(function(x){return x.id===id;});if(!s)return;if(field==='expected')s.expected=parseFloat(val)||0;else s[field]=(val||'').trim()||'Source';saveSt();rFin();}
-function addSrc(){st.finPlan.incomeSources=st.finPlan.incomeSources||[];st.finPlan.incomeSources.push({id:uid(),name:'New source',expected:0});saveSt();rFin();}
+function ensureFinPlan(){if(!st.finPlan||!st.finPlan.incomeSources)st.finPlan=JSON.parse(JSON.stringify(DEF_FINPLAN));if(!st.finPlan.destinations)st.finPlan.destinations=JSON.parse(JSON.stringify(DEF_FINPLAN.destinations));}
+function addSrc(){ensureFinPlan();st.finPlan.incomeSources.push({id:uid(),name:'New source',expected:0});saveSt();rFin();}
 function delSrc(id){st.finPlan.incomeSources=((st.finPlan&&st.finPlan.incomeSources)||[]).filter(function(s){return s.id!==id;});saveSt();rFin();}
 function saveDest(id,field,val){var d=((st.finPlan&&st.finPlan.destinations)||[]).find(function(x){return x.id===id;});if(!d)return;if(field==='planned')d.planned=parseFloat(val)||0;else{d.name=(val||'').trim()||'Destination';d.match='';}saveSt();rFin();}
-function addDest(){st.finPlan.destinations=st.finPlan.destinations||[];st.finPlan.destinations.push({id:uid(),name:'New destination',planned:0,kind:'manual',match:''});saveSt();rFin();}
+function addDest(){ensureFinPlan();st.finPlan.destinations.push({id:uid(),name:'New destination',planned:0,kind:'manual',match:''});saveSt();rFin();}
 function delDest(id){st.finPlan.destinations=((st.finPlan&&st.finPlan.destinations)||[]).filter(function(d){return d.id!==id;});saveSt();rFin();}
 function addBud(){var n=prompt('New budget category name:');if(n==null)return;n=n.trim();if(!n||st.budgets[n]!==undefined)return;st.budgets[n]=0;saveSt();rFin();}
 function delBud(c){if(!confirm('Remove the "'+c+'" budget category? Transactions keep their category; only the budget line goes.'))return;delete st.budgets[c];saveSt();rFin();}
@@ -2385,11 +2388,11 @@ const PRESETS={
   cashapp:{name:'Cash App',date:['Date','Transaction Date'],amount:['Net Amount','Amount'],desc:['Notes','Name','Transaction Type'],hint:'Cash App → Activity → the account icon → Export CSV / Documents → Monthly Statements.'},
   paypal:{name:'PayPal',date:['Date'],amount:['Net','Gross','Amount'],desc:['Name','Item Title','Type','Description'],hint:'PayPal → Activity → Statements → Download → CSV.'},
   step:{name:'Step',date:['Date','Transaction Date','Posted Date'],amount:['Amount'],desc:['Description','Merchant','Name','Memo'],hint:'Step app → Account / Card → transactions → Export (or request a statement).'},
-  ledger:{name:'Full ledger (my tracker)',date:['Date','Transaction Date','Posted Date'],amount:['Amount','Amount ($)','Value','Net'],desc:['Description','Memo','Note','Details','Name','Merchant'],account:['Account','Account Name','Source'],category:['Category','Cat','Budget','Bucket'],type:['Type','Flow','Direction','Kind'],hint:'Export your tracker\u2019s Transactions tab as CSV. This reads the Account, Category and Type columns and spreads rows across accounts — creating any account it doesn\u2019t recognize so your lineup matches your tracker (PayPal stays).'},
+  ledger:{name:'Full ledger (my tracker)',date:['Date','Transaction Date','Posted Date'],amount:['Amount','Amount ($)','Value','Net'],desc:['Description','Memo','Note','Details','Name','Merchant'],account:['Account','Account Name','Source'],category:['Category','Cat','Budget','Bucket'],type:['Type','Flow','Direction','Kind'],tac:['Transfer Account','Transfer to','To Account','Xfer Account','Transfer Acct'],bucket:['Bucket','Savings Bucket'],hint:'Export your tracker\u2019s Transactions tab as CSV. This reads the Account, Category and Type columns and spreads rows across accounts — creating any account it doesn\u2019t recognize so your lineup matches your tracker (PayPal stays).'},
   custom:{name:'Custom / other',date:[],amount:[],desc:[],hint:'Any CSV works — you\u2019ll pick which columns are the date, amount, and description.'}
 };
 let csvRows=[],csvHeaderIdx=0,csvHeaderCells=[],csvCols={date:-1,amount:-1,desc:-1},csvParsed=[],csvDup=[],csvAccount=null,csvDefCat='Other';
-let csvMode='single',csvLedgerCols={account:-1,category:-1,type:-1};
+let csvMode='single',csvLedgerCols={account:-1,category:-1,type:-1,tac:-1,bucket:-1};
 
 function parseCSV(text){
   const rows=[];let row=[],field='',inQ=false;
@@ -2475,12 +2478,17 @@ function buildParsedLedger(){
     let tp;
     if(rawTp){
       if(/adjust/.test(rawTp))tp='Adjustment';
+      else if(/transfer|xfer/.test(rawTp))tp='Transfer';
       else if(/income|credit|deposit|paycheck|salary|refund|interest|payroll/.test(rawTp))tp='Income';
       else if(/expense|debit|withdraw|purchase|spend|payment|bill/.test(rawTp))tp='Expense';
       else tp=amt<0?'Expense':'Income';
     }else{tp=amt<0?'Expense':'Income';}
-    const ct=rawCt||(tp==='Income'?'Income':'Other');
-    out.push({dt:dt,am:Math.abs(amt),ds:ds,tp:tp,ac:ac,ct:ct});
+    const ct=rawCt||(tp==='Income'?'Income':tp==='Transfer'?'Transfer':'Other');
+    const tac=(tp==='Transfer'&&csvLedgerCols.tac>=0)?(((r[csvLedgerCols.tac]||'').trim())||null):null;
+    const bucket=(csvLedgerCols.bucket>=0)?(((r[csvLedgerCols.bucket]||'').trim())||null):null;
+    const row={dt:dt,am:Math.abs(amt),ds:ds,tp:tp,ac:ac,ct:ct,tac:tac};
+    if(bucket)row.bucket=bucket;
+    out.push(row);
   }
   return out;
 }
@@ -2520,7 +2528,8 @@ function csvParseFile(){
     const cd=resolveCol(csvHeaderCells,preset.date),ca=resolveCol(csvHeaderCells,preset.amount),cs=resolveCol(csvHeaderCells,preset.desc);
     if(csvMode==='ledger'){
       const cac=resolveCol(csvHeaderCells,preset.account||[]),cct=resolveCol(csvHeaderCells,preset.category||[]),ctp=resolveCol(csvHeaderCells,preset.type||[]);
-      csvCols={date:cd,amount:ca,desc:cs};csvLedgerCols={account:cac,category:cct,type:ctp};
+      const ctac=resolveCol(csvHeaderCells,preset.tac||[]),cbk=resolveCol(csvHeaderCells,preset.bucket||[]);
+      csvCols={date:cd,amount:ca,desc:cs};csvLedgerCols={account:cac,category:cct,type:ctp,tac:ctac,bucket:cbk};
       if(cd>=0&&ca>=0&&cac>=0){csvPreview();}else{csvStepMapLedger(cd,ca,cs,cac,cct,ctp);}
     }else{
       if(cd>=0&&ca>=0){csvCols={date:cd,amount:ca,desc:cs};csvPreview();}
@@ -2573,7 +2582,7 @@ function csvPreview(){
   const newCount=csvDup.filter(function(d){return !d;}).length,dupCount=csvDup.filter(function(d){return d;}).length;
   if(!csvParsed.length){document.getElementById('csv-body').innerHTML='<div style="font-size:13px;color:var(--mu);margin-bottom:14px;line-height:1.5">No transactions could be parsed with the current columns. Try the mapping, or check the file.</div><button class="bc2" onclick="csvStep1()">Back</button>';return;}
   var newAccts=[];
-  if(ledger){var have={};Object.keys(st.accounts).forEach(function(n){have[n]=1;});var sa={};csvParsed.forEach(function(p,i){if(csvDup[i])return;if(!have[p.ac]&&!sa[p.ac]){sa[p.ac]=1;newAccts.push(p.ac);}});}
+  if(ledger){var have={};Object.keys(st.accounts).forEach(function(n){have[n]=1;});var sa={};csvParsed.forEach(function(p,i){if(csvDup[i])return;[p.ac,(p.tp==='Transfer'?p.tac:null)].forEach(function(nm){if(nm&&!have[nm]&&!sa[nm]){sa[nm]=1;newAccts.push(nm);}});});}
   const rowsHtml=csvParsed.map(function(p,i){var clr=p.tp==='Income'?'var(--up)':p.tp==='Transfer'?'var(--mu)':'var(--dn)';var pre=p.tp==='Income'?'+':p.tp==='Transfer'?'↔':'−';return '<div class="csv-row '+(csvDup[i]?'dup':'')+'"><div style="min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.ds)+'</div><div style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+fmD(p.dt)+' · '+esc(p.ac)+' · '+esc(p.ct)+'</div></div><div style="display:flex;align-items:center;gap:8px">'+(csvDup[i]?'<span class="csv-dupbadge">dup</span>':'')+'<span class="csv-amt" style="color:'+clr+'">'+pre+fm2(p.am)+'</span></div></div>';}).join('');
   document.getElementById('csv-body').innerHTML=
     '<div style="font-size:13px;margin-bottom:10px"><strong>'+newCount+'</strong> new · <span style="color:var(--mu)">'+dupCount+' duplicate'+(dupCount===1?'':'s')+' (will skip)</span></div>'+
@@ -2586,11 +2595,11 @@ function csvPreview(){
 function csvCommit(){
   const add=csvParsed.filter(function(p,i){return !csvDup[i];});
   if(csvMode==='ledger'){
-    add.forEach(function(p){if(!st.accounts[p.ac]){const isCard=/credit|card|amex|visa|discover|mastercard|capital one|loan|mortgage/i.test(p.ac);st.accounts[p.ac]={type:isCard?'Credit Card':'Cash',startBal:0,sts:false};}});
+    add.forEach(function(p){[p.ac,(p.tp==='Transfer'?p.tac:null)].forEach(function(nm){if(!nm||st.accounts[nm])return;var isCard=/credit|card|amex|visa|discover|mastercard|capital one|loan|mortgage/i.test(nm);var isInv=/ira|roth|401|brokerage|invest|fidelity|vanguard|schwab|tsp|hysa/i.test(nm);st.accounts[nm]={type:isCard?'Credit Card':(isInv?'Investment':'Cash'),startBal:0,sts:false};});});
     const zero=document.getElementById('csv-zero');
     if(zero&&zero.checked){Object.keys(st.accounts).forEach(function(n){st.accounts[n].startBal=0;});}
   }
-  add.forEach(function(p){st.transactions.push({id:uid(),dt:p.dt,ac:p.ac,ds:p.ds,ct:p.ct,tp:p.tp,am:p.am,tac:null});});
+  add.forEach(function(p){var t={id:uid(),dt:p.dt,ac:p.ac,ds:p.ds,ct:p.ct,tp:p.tp,am:p.am,tac:(p.tp==='Transfer'?(p.tac||null):null)};if(p.bucket)t.bucket=p.bucket;st.transactions.push(t);});
   saveSt();closeMo('mo-csv');rFin();rDash();
   toast(add.length+' transaction'+(add.length===1?'':'s')+' imported.');
 }
