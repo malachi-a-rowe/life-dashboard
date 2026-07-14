@@ -2644,14 +2644,22 @@ function renderSyncStatus(){
 
 async function cloudFetch(){return await sbClient.from('dashboard').select('data,updated_at').eq('user_id',sbUser.id).maybeSingle();}
 // Relationship between this device and the cloud — pure comparison, no data movement.
+function stampOf(d){
+  if(!d) return 'none';
+  try{
+    return (d.transactions? d.transactions.length : 0) + ':' +
+           JSON.stringify(d).length;
+  }catch(e){ return 'err'; }
+}
 async function cloudStatus(){
   var r=await cloudFetch();
   if(r.error)return {state:'error',err:r.error};
   var d=r.data, has=!!(d&&d.data&&Object.keys(d.data).length>0);
   var cloudTs=d?d.updated_at:null, cloudN=has?((d.data.transactions||[]).length):0;
+  var same = has && stampOf(d.data)===stampOf(st); //do the two datasets actually match?
   var state;
   if(!has)state='empty';
-  else if(cloudTs===cloudBaseline)state=cloudDirty?'ahead':'insync';
+  else if(same)state='insync';
   else state=cloudDirty?'conflict':'behind';
   return {state:state,cloudTs:cloudTs,cloudN:cloudN,has:has,cloudData:d?d.data:null};
 }
@@ -2664,11 +2672,19 @@ async function cloudUpload(){
   if(cloudBusy)return; cloudBusy=true; syncMsg('',''); setChip('working');
   try{
     var s=await cloudStatus();
+    console.log("UPLOAD STATUS", {
+      state: s.state,
+      cloudTs: s.cloudTs,
+      cloudBaseline: cloudBaseline,
+      cloudDirty: cloudDirty,
+      cloudTransactions: s.cloudN,
+      localTransactions: (st.transactions || []).length
+    });
     if(s.state==='error')throw s.err;
     if(s.state==='insync'){cloudBusy=false;cloudUi='';renderSyncStatus();toast('This device already matches the cloud.');return;}
     if((s.state==='behind'||s.state==='conflict')&&!confirm('The cloud has newer changes from your other device that aren\u2019t on this device. Uploading overwrites them with this device\u2019s data.\n\nContinue?')){cloudBusy=false;cloudUi='';renderSyncStatus();buildSyncModal();return;}
     var nowIso=new Date().toISOString();
-    var up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'});
+    const up=await sbClient.from('dashboard').upsert({user_id:sbUser.id,data:st,updated_at:nowIso},{onConflict:'user_id'}).select();
     if(up.error)throw up.error;
     var chk=await cloudFetch();
     if(chk.error)throw chk.error;
@@ -2726,10 +2742,21 @@ async function refreshSyncModal(){
   if(!sbClient||!sbUser)return;
   var box=document.getElementById('sy-status'), cs=document.getElementById('sy-cloud-sum');
   var s=await cloudStatus();
+  console.log("REFRESH SYNC", {
+    state: s.state,
+    cloudTs: s.cloudTs,
+    cloudBaseline: cloudBaseline,
+    cloudDirty: cloudDirty,
+    cloudTransactions: s.cloudN,
+    localTransactions: (st.transactions || []).length
+  });
+  if(s.cloudTs && !cloudDirty){
+  setCloudBase(s.cloudTs);
+  }
   if(s.state==='error'){if(box){box.textContent='Couldn\u2019t reach the cloud — check your connection.';box.style.color='var(--dn)';}if(cs)cs.textContent='—';return;}
   if(cs)cs.textContent=s.has?(s.cloudN+' transactions · '+timeAgo(s.cloudTs)):'empty';
   var msg,color='var(--sec)';
-  if(s.state==='insync')msg='In sync. This device and the cloud match.';
+  if(s.state==='insync')msg='In sync with the last cloud version this device checked.';
   else if(s.state==='ahead')msg='This device has changes the cloud doesn\u2019t. Upload to save them to the cloud.';
   else if(s.state==='behind')msg='The cloud is newer — updated from your other device. Download to bring those changes here.';
   else if(s.state==='conflict'){msg='Both this device and the cloud changed since the last sync. Upload or Download will overwrite one side — choose which to keep.';color='var(--dn)';}
