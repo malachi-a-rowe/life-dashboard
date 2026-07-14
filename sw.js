@@ -1,11 +1,9 @@
-// ════════════════════════════════════════════════════════════════
-// Life Dashboard Service Worker
-//   • App files (HTML, config.js, icons) → cached for offline
-//   • Cross-origin (Supabase, fonts, CDNs) → always live network, never cached
-//   Bump CACHE_VERSION on every release: v4 -> v5 -> ...
-// ════════════════════════════════════════════════════════════════
-const CACHE_VERSION = 'lifedash-v4';
-const APP_SHELL = [
+// Life Dashboard service worker
+// App files are cached for offline; cross-origin requests (Supabase, fonts, CDNs)
+// are never touched, so cloud reads/writes always hit the live network.
+// Bump CACHE on every release: v5 -> v6 -> ...
+const CACHE = 'lifedash-v5';
+const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
@@ -13,69 +11,55 @@ const APP_SHELL = [
   './icon.svg'
 ];
 
-self.addEventListener('install', event => {
+self.addEventListener('install', function (event) {
   event.waitUntil(
-    caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); })
+      .then(function () { return self.skipWaiting(); })
   );
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener('activate', function (event) {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(key => key !== CACHE_VERSION).map(key => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
+    caches.keys().then(function (keys) {
+      return Promise.all(keys.filter(function (k) { return k !== CACHE; })
+        .map(function (k) { return caches.delete(k); }));
+    }).then(function () { return self.clients.claim(); })
   );
 });
 
-self.addEventListener('fetch', event => {
-  const req = event.request;
+self.addEventListener('fetch', function (event) {
+  var req = event.request;
   if (req.method !== 'GET') return;
+  var url = new URL(req.url);
 
-  const url = new URL(req.url);
-
-  // Only ever handle this app's own files. Supabase, fonts, and CDN
-  // requests are left completely alone → they always hit the live network.
+  // Only ever handle this app's own files. Supabase, Google Fonts and CDN
+  // requests fall through to the network untouched (never cached).
   if (url.origin !== self.location.origin) return;
 
-  const isHTML =
-    req.mode === 'navigate' ||
-    (req.headers.get('accept') || '').includes('text/html');
-  const isConfig = url.pathname.endsWith('/config.js');
+  var isHTML = req.mode === 'navigate' ||
+    (req.headers.get('accept') || '').indexOf('text/html') !== -1;
+  var isConfig = url.pathname.endsWith('/config.js');
 
-  // Network-first for HTML + config.js (fresh app on every load)
+  // Network-first for HTML + config.js so deploys land immediately.
   if (isHTML || isConfig) {
     event.respondWith(
-      fetch(req)
-        .then(response => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_VERSION).then(cache => cache.put(req, copy));
-          }
-          return response;
-        })
-        .catch(async () => (await caches.match(req)) || caches.match('./index.html'))
+      fetch(req).then(function (res) {
+        if (res && res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
+        return res;
+      }).catch(function () {
+        return caches.match(req).then(function (r) { return r || caches.match('./index.html'); });
+      })
     );
     return;
   }
 
-  // Cache-first for this app's own static assets (icons, etc.)
+  // Cache-first for this app's own static assets (icons, etc.).
   event.respondWith(
-    caches.match(req).then(async cached => {
-      if (cached) return cached;
-      try {
-        const response = await fetch(req);
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then(cache => cache.put(req, copy));
-        }
-        return response;
-      } catch {
-        return cached;
-      }
+    caches.match(req).then(function (cached) {
+      return cached || fetch(req).then(function (res) {
+        if (res && res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
+        return res;
+      }).catch(function () { return cached; });
     })
   );
 });
