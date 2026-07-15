@@ -708,6 +708,7 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
     <div class="fg"><label class="fl">Amount ($)</label><input class="fn" type="number" id="tx-am" placeholder="0.00" step="0.01"></div>
   </div>
   <div class="fg" id="tx-tac-w" style="display:none"><label class="fl">Transfer to account</label><select class="fs" id="tx-tac"></select></div>
+  <div class="fg" id="tx-bkt-w" style="display:none"><label class="fl">Savings bucket (optional)</label><select class="fs" id="tx-bkt"></select></div>
   <button class="bp" onclick="saveTx()">Add transaction</button>
   <button class="bc2" onclick="closeMo('mo-tx')">Cancel</button>
 </div></div>
@@ -816,6 +817,7 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
 const THEMES={
   field:{nm:'Field Notes',bg:'#FEFCF8',sf:'#F5F0E8',hv:'#8A7060',lt:'#E4DCD0',ink:'#201408',sec:'#8A7060',mu:'#B8A888',al:'#FBF4F0',hov:'#EEE8DC',g0:'#EDE8E0',g1:'#C8D8BC',g2:'#A4BC8C',g3:'#7A9E68',g4:'#566E48'},
   night:{nm:'Night Ops',bg:'#1C1A16',sf:'#28241E',hv:'#A8906C',lt:'#3C372E',ink:'#EDE5D8',sec:'#C0A886',mu:'#7A7060',al:'#33261F',hov:'#2E2A22',g0:'#2A2721',g1:'#3E4A36',g2:'#54684A',g3:'#74945E',g4:'#9CC084'},
+  recon:{nm:'Recon',bg:'#F0EDE3',sf:'#E5E0D2',hv:'#7E6C48',lt:'#D6CEBB',ink:'#23201A',sec:'#6C6250',mu:'#A79B82',al:'#EAE3D2',hov:'#DDD6C3',g0:'#E2DFCD',g1:'#C2CEA2',g2:'#98B074',g3:'#708D56',g4:'#52663C'},
   evergreen:{nm:'Evergreen',bg:'#F6FAF4',sf:'#E9F0E4',hv:'#5E7850',lt:'#D6E2CE',ink:'#18220F',sec:'#5E7850',mu:'#9CAC90',al:'#F2EFE3',hov:'#E0EAD8',g0:'#E4ECDE',g1:'#C4D8B8',g2:'#9CBE88',g3:'#729C5C',g4:'#4E7040'},
   overcast:{nm:'Overcast',bg:'#F7F8FA',sf:'#EBEEF2',hv:'#5C6878',lt:'#DAE0E8',ink:'#14181E',sec:'#5C6878',mu:'#9CA6B4',al:'#F3EEEA',hov:'#E2E7EE',g0:'#E6EAF0',g1:'#BECBDA',g2:'#92A9C2',g3:'#6788A8',g4:'#44607E'},
   desert:{nm:'High Desert',bg:'#FBF6ED',sf:'#F4EADA',hv:'#A67C3E',lt:'#EADCC2',ink:'#261A08',sec:'#906A34',mu:'#C4AE84',al:'#F8EEDF',hov:'#EFE4CE',g0:'#EFE7D6',g1:'#DCC9A0',g2:'#C4A870',g3:'#A8854A',g4:'#7E5F2E'},
@@ -1585,6 +1587,9 @@ function moSpent(){const mo=curMo();return st.transactions.filter(t=>t.dt.starts
 function rollUpcoming(o){o=o||st;var cm=curMo();(o.upcoming||[]).forEach(function(u){if(u.freq==='monthly'){var m=(u.due||'').slice(0,7);if(m&&m<cm){var day=u.day||(+((u.due||'').slice(8,10))||1);u.due=cm+'-'+String(day).padStart(2,'0');u.done=false;}}});}
 function monthsBetween(a,b){if(!a||!b)return 0;var d1=parseDk(a),d2=parseDk(b);return Math.max(0,(d2.getFullYear()-d1.getFullYear())*12+(d2.getMonth()-d1.getMonth()));}
 function savElapsed(s){return s.start?monthsBetween(s.start,today()):0;}
+function bucketTagged(name){var n=(name||'').toLowerCase();if(!n)return [];return st.transactions.filter(function(t){return (t.bucket||'').toLowerCase()===n;});}
+function bucketFlow(name){var sav=/saving|invest|ira|roth|brokerage|401|tsp|hysa|reserve|retire|fidelity|vanguard|schwab/i;return bucketTagged(name).reduce(function(a,t){var sign=1;if(t.tp==='Transfer'){var tacS=sav.test(t.tac||''),acS=sav.test(t.ac||'');if(acS&&!tacS)sign=-1;}return a+sign*Math.abs(t.am);},0);}
+function bucketCurrent(s){var tg=bucketTagged(s.name);return tg.length?((+s.startAmt||0)+bucketFlow(s.name)):(+s.current||0);}
 function savShould(s){return Math.min(+s.goal||0,(+s.startAmt||0)+(+s.monthly||0)*savElapsed(s));}
 function savRemainMonths(s){if(!(+s.monthly>0))return null;return Math.max(0,Math.ceil(((+s.goal||0)-(+s.current||0))/(+s.monthly)));}
 function monthLabelFromNow(m){var d=new Date();d.setMonth(d.getMonth()+m);return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear();}
@@ -2301,16 +2306,18 @@ function rFin(){
   document.getElementById('fn-inc').textContent=fm2(moIncome());
   document.getElementById('fn-up').innerHTML=st.upcoming.length?st.upcoming.map(u=>'<div class="uprow '+(u.done?'up-done':'')+'"><div><div class="up-t">'+u.item+' <span style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+fm2(u.amt)+'</span></div><div class="up-s">'+fmD(u.due)+' · '+(u.freq==='monthly'?'↻ monthly':'one-time')+' · '+u.ac+'</div></div><div style="display:flex;align-items:center;gap:6px"><button class="paid-btn" onclick="togUp(\''+u.id+'\')">'+(u.done?'Undo':'Mark paid')+'</button><i class="ti ti-pencil pen" onclick="openEditUp(\''+u.id+'\')"></i><i class="ti ti-x del-btn" onclick="delUp(\''+u.id+'\')"></i></div></div>').join(''):'<div style="font-size:13px;color:var(--mu);font-style:italic;padding:8px 0">No upcoming bills.</div>';
   document.getElementById('fn-sav').innerHTML=st.savings.map(function(s){
+    var cur=s.isPercent?(+s.current||0):bucketCurrent(s);
     if(s.isPercent){var pp=Math.min(100,Math.round(s.current/s.goal*100));return '<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:14px">'+s.name+'</span><span style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:\'DM Mono\',monospace;color:var(--cn)">'+s.current+'% / '+s.goal+'%</span><i class="ti ti-pencil pen" onclick="openEditSav(\''+s.id+'\')"></i><i class="ti ti-x del-btn" onclick="delSav(\''+s.id+'\')"></i></span></div><div class="tr"><div class="fi" style="width:'+pp+'%;background:var(--cn)"></div></div></div>';}
-    var p=s.goal>0?Math.min(100,Math.round(s.current/s.goal*100)):0;
-    var should=savShould(s),diff=s.current-should,elapsed=savElapsed(s),remain=savRemainMonths(s);
+    var p=s.goal>0?Math.min(100,Math.round(cur/s.goal*100)):0;
+    var should=savShould(s),diff=cur-should,elapsed=savElapsed(s),remain=savRemainMonths(s);
     var diffTxt=Math.abs(diff)<1?'on plan':(diff>0?fm2(diff)+' ahead':fm2(-diff)+' behind');
     var diffClr=Math.abs(diff)<1?'var(--mu)':(diff>0?'var(--up)':'var(--dn)');
     var line2=(+s.monthly>0)?(elapsed+' mo in · '+fm2(s.monthly)+'/mo'+(remain!=null?' · '+remain+' mo left (~'+monthLabelFromNow(remain)+')':'')):'set a monthly contribution to plan this';
-    return '<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:14px">'+s.name+'</span><span style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:\'DM Mono\',monospace;color:var(--cn)">'+fm(s.current)+' / '+fm(s.goal)+'</span><i class="ti ti-pencil pen" onclick="openEditSav(\''+s.id+'\')"></i><i class="ti ti-x del-btn" onclick="delSav(\''+s.id+'\')"></i></span></div><div class="tr"><div class="fi" style="width:'+p+'%;background:var(--cn)"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;font-family:\'DM Mono\',monospace;margin-top:5px;gap:8px"><span style="color:var(--mu)">'+line2+'</span><span style="color:'+diffClr+';white-space:nowrap">'+diffTxt+'</span></div></div>';
+    return '<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:14px">'+s.name+'</span><span style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:\'DM Mono\',monospace;color:var(--cn)">'+fm(cur)+' / '+fm(s.goal)+'</span><i class="ti ti-pencil pen" onclick="openEditSav(\''+s.id+'\')"></i><i class="ti ti-x del-btn" onclick="delSav(\''+s.id+'\')"></i></span></div><div class="tr"><div class="fi" style="width:'+p+'%;background:var(--cn)"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;font-family:\'DM Mono\',monospace;margin-top:5px;gap:8px"><span style="color:var(--mu)">'+line2+'</span><span style="color:'+diffClr+';white-space:nowrap">'+diffTxt+'</span></div></div>';
   }).join('');
   renderTxList();
   const names=Object.keys(st.accounts);['tx-ac','tx-tac','nu-ac'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=names.map(x=>'<option>'+esc(x)+'</option>').join('');});
+  var bkt=document.getElementById('tx-bkt');if(bkt)bkt.innerHTML='<option value="">(none)</option>'+st.savings.filter(function(s){return !s.isPercent;}).map(function(s){return '<option>'+esc(s.name)+'</option>';}).join('');
 }
 function renderTxList(){
   const cont=document.getElementById('fn-txs');if(!cont)return;
@@ -2346,12 +2353,13 @@ function editTx(id){
   document.getElementById('tx-am').value=t.am;
   ensureOpt('tx-ac',t.ac);
   if(t.tp==='Transfer'&&t.tac)ensureOpt('tx-tac',t.tac);
+  if(t.tp==='Transfer'&&t.bucket){var bk=document.getElementById('tx-bkt');if(bk){ensureOpt('tx-bkt',t.bucket);bk.value=t.bucket;}}
 }
 function editAcct(nm){const id='ab-'+nm.replace(/\W/g,'_');const el=document.getElementById(id);if(!el)return;const cur=acctBal(nm);el.outerHTML='<input class="acct-edit" id="ae-'+id+'" type="number" step="0.01" value="'+cur.toFixed(2)+'" onblur="commitAcct(\''+nm.replace(/'/g,"\\'")+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">';const inp=document.getElementById('ae-'+id);if(inp){inp.focus();inp.select();}}
 function commitAcct(nm,val){const v=parseFloat(val);if(!isNaN(v)){const diff=v-acctBal(nm);if(Math.abs(diff)>0.001)st.transactions.push({id:uid(),dt:today(),ac:nm,ds:'Manual adjustment',ct:'Adjustment',tp:'Adjustment',am:diff,tac:null});}saveSt();rFin();}
 function delAcct(nm){if(!confirm('Remove "'+nm+'" and all its transactions?'))return;delete st.accounts[nm];st.transactions=st.transactions.filter(t=>t.ac!==nm&&t.tac!==nm);saveSt();rFin();}
-function txTypeChange(){document.getElementById('tx-tac-w').style.display=document.getElementById('tx-tp').value==='Transfer'?'block':'none';}
-function saveTx(){const ds=document.getElementById('tx-ds').value.trim();const am=parseFloat(document.getElementById('tx-am').value);if(!ds||isNaN(am)||am<=0)return;const tp=document.getElementById('tx-tp').value;const obj={dt:document.getElementById('tx-dt').value||today(),ac:document.getElementById('tx-ac').value,ds:ds,ct:document.getElementById('tx-ct').value,tp:tp,am:am,tac:tp==='Transfer'?document.getElementById('tx-tac').value:null};if(editingTxId){const t=st.transactions.find(function(x){return x.id===editingTxId;});if(t)Object.assign(t,obj);}else{obj.id=uid();st.transactions.push(obj);}editingTxId=null;saveSt();closeMo('mo-tx');document.getElementById('tx-ds').value='';document.getElementById('tx-am').value='';rFin();rDash();}
+function txTypeChange(){var isT=document.getElementById('tx-tp').value==='Transfer';document.getElementById('tx-tac-w').style.display=isT?'block':'none';var bw=document.getElementById('tx-bkt-w');if(bw)bw.style.display=isT?'block':'none';}
+function saveTx(){const ds=document.getElementById('tx-ds').value.trim();const am=parseFloat(document.getElementById('tx-am').value);if(!ds||isNaN(am)||am<=0)return;const tp=document.getElementById('tx-tp').value;const obj={dt:document.getElementById('tx-dt').value||today(),ac:document.getElementById('tx-ac').value,ds:ds,ct:document.getElementById('tx-ct').value,tp:tp,am:am,tac:tp==='Transfer'?document.getElementById('tx-tac').value:null,bucket:(tp==='Transfer'?(document.getElementById('tx-bkt').value||null):null)};if(editingTxId){const t=st.transactions.find(function(x){return x.id===editingTxId;});if(t)Object.assign(t,obj);}else{obj.id=uid();st.transactions.push(obj);}editingTxId=null;saveSt();closeMo('mo-tx');document.getElementById('tx-ds').value='';document.getElementById('tx-am').value='';rFin();rDash();}
 function delTx(id){if(!confirm('Delete this transaction? Balances will update.'))return;st.transactions=st.transactions.filter(t=>t.id!==id);saveSt();rFin();}
 function saveAcct(){const nm=document.getElementById('na-nm').value.trim();if(!nm)return;st.accounts[nm]={type:document.getElementById('na-tp').value,startBal:parseFloat(document.getElementById('na-bal').value)||0,sts:document.getElementById('na-sts').checked};saveSt();closeMo('mo-acct');document.getElementById('na-nm').value='';document.getElementById('na-bal').value='';rFin();}
 function saveBud(c,val){const v=parseFloat(val);if(!isNaN(v)&&v>=0)st.budgets[c]=v;saveSt();rFin();}
