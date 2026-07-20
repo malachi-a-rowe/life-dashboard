@@ -294,6 +294,57 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
 .theme-dot{width:16px;height:16px;border-radius:50%;border:.5px solid rgba(0,0,0,.12)}
 .theme-cur{font-size:10px;font-family:'DM Mono',monospace;color:var(--up);margin-right:8px}
 .ov{position:fixed;inset:0;background:rgba(20,14,8,.45);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+#mo-guide .mo{position:relative;max-width:560px;width:100%;min-height:84dvh;max-height:96dvh;padding:22px 18px;display:flex;flex-direction:column}
+#guide-body{flex:1;display:flex;flex-direction:column}
+.g-x{position:absolute;top:14px;right:16px;width:32px;height:32px;border:none;background:var(--hov);border-radius:8px;color:var(--sec);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+.g-x i{font-size:18px}
+.g-head{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--sec);font-family:'DM Mono',monospace;font-weight:600}
+.g-day{font-size:20px;font-weight:600;margin:2px 40px 6px 0;letter-spacing:-.01em;line-height:1.2}
+.g-sec{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);font-weight:600;margin:16px 0 4px}
+.g-prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--lt);font-size:14px}
+.g-pdet{font-family:'DM Mono',monospace;font-size:12px;color:var(--mu);white-space:nowrap}
+.g-prog{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--sec);font-family:'DM Mono',monospace;font-weight:600;text-align:center;margin-bottom:10px}
+.g-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 0}
+.g-exname{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.g-cue{font-size:14px;color:var(--sec);margin-top:10px;line-height:1.5;max-width:340px;margin-inline:auto}
+.g-rest{display:flex;align-items:baseline;gap:10px;justify-content:center;background:var(--sf);border-radius:12px;padding:12px;margin-bottom:14px;cursor:pointer}
+.g-restrow{display:flex;gap:8px;align-items:stretch;margin-bottom:14px}
+.g-restrow .g-rest{flex:1;margin-bottom:0}
+.g-radj{flex:0 0 52px;border:1px solid var(--lt);background:var(--sf);border-radius:12px;color:var(--sec);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer}
+.g-radj:active{background:var(--hov)}
+.g-notes{width:100%;min-height:88px;padding:12px;background:var(--bg);border:1px solid var(--lt);border-radius:12px;font-family:inherit;font-size:14px;color:var(--ink);resize:vertical;outline:none;line-height:1.5;margin-top:6px}
+.g-notes:focus{border-color:var(--hv)}
+.g-restt{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--ca);letter-spacing:-.02em}
+.g-restt.g-restoff{color:var(--mu)}
+.g-restl{font-size:11px;color:var(--mu)}
+.g-ref{border:1.5px solid var(--hv);border-radius:14px;padding:22px 16px 18px;text-align:center;background:var(--sf)}
+.g-refbadge{width:44px;height:4px;border-radius:2px;margin:0 auto 12px}
+.g-refname{font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.2}
+.g-refsub{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--cn);margin-top:5px;letter-spacing:-.01em}
+.g-ref .g-cue{margin-top:8px}
+.g-demo{margin-top:14px;display:inline-flex;align-items:center;gap:6px;background:var(--hov);border:none;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;font-family:inherit}
+.g-demo i{font-size:14px}
+.g-note{font-size:12px;color:var(--sec);font-style:italic;text-align:center;margin-top:10px}
+.g-sets{margin-top:16px}
+.g-setshdr{display:flex;align-items:center;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);padding:0 0 4px;font-family:'DM Mono',monospace}
+.g-setshdr>span{flex:1;text-align:center}
+.g-setshdr .g-setn{flex:0 0 26px}
+.g-setshdr .g-rpe{flex:0 0 52px}
+.g-setrow{display:flex;align-items:center;gap:8px;padding:6px 0}
+.g-setn{flex:0 0 26px;font-family:'DM Mono',monospace;font-size:14px;color:var(--mu);text-align:center}
+.g-in{flex:1;min-width:0;padding:11px 6px;background:var(--bg);border:1px solid var(--lt);border-radius:8px;font-family:'DM Mono',monospace;font-size:16px;color:var(--ink);text-align:center;outline:none}
+.g-in:focus{border-color:var(--hv)}
+.g-in.g-rpe{flex:0 0 52px}
+.g-check{flex:0 0 40px;height:42px;border-radius:10px;border:1.5px solid var(--lt);background:transparent;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.g-check i{font-size:17px}
+.g-check.on{background:var(--g3);border-color:var(--g3);color:#fff}
+.g-setdone .g-in{opacity:.5}
+.g-addset{margin-top:8px;background:none;border:none;color:var(--sec);font-size:13px;font-style:italic;cursor:pointer;padding:4px 0}
+.g-btn{width:100%;padding:14px;border-radius:12px;border:1px solid var(--lt);background:var(--sf);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:14px}
+.g-btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.g-nav{display:flex;gap:10px;margin-top:auto;padding-top:18px}
+.g-nav .g-btn{margin-top:0;flex:1}
+.g-btn2{flex:0 0 38%;padding:14px;border-radius:12px;border:1px solid var(--lt);background:transparent;color:var(--sec);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
 .ov.open{display:flex}
 .mo{background:var(--bg);border:1.5px solid var(--hv);border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:88dvh;overflow-y:auto}
 .mt{font-size:22px;font-weight:500;margin-bottom:4px}
@@ -589,6 +640,8 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
 </div></div>
 
 <!-- CUSTOM PLAN BUILDER -->
+<div class="ov" id="mo-guide"><div class="mo"><div id="guide-body"></div></div></div>
+
 <div class="ov" id="mo-cplan"><div class="mo" style="max-width:600px">
   <div class="mt" id="cp-title">Create workout plan</div>
   <div class="ms2">Name it, add days, then add exercises from the library or your own</div>
@@ -817,7 +870,7 @@ hr.rl{border:none;border-top:.5px solid var(--lt);margin:16px 0}
 const THEMES={
   field:{nm:'Field Notes',bg:'#FEFCF8',sf:'#F5F0E8',hv:'#8A7060',lt:'#E4DCD0',ink:'#201408',sec:'#8A7060',mu:'#B8A888',al:'#FBF4F0',hov:'#EEE8DC',g0:'#EDE8E0',g1:'#C8D8BC',g2:'#A4BC8C',g3:'#7A9E68',g4:'#566E48'},
   night:{nm:'Night Ops',bg:'#1C1A16',sf:'#28241E',hv:'#A8906C',lt:'#3C372E',ink:'#EDE5D8',sec:'#C0A886',mu:'#7A7060',al:'#33261F',hov:'#2E2A22',g0:'#2A2721',g1:'#3E4A36',g2:'#54684A',g3:'#74945E',g4:'#9CC084'},
-  recon:{nm:'Recon',bg:'#F0EDE3',sf:'#E5E0D2',hv:'#7E6C48',lt:'#D6CEBB',ink:'#23201A',sec:'#6C6250',mu:'#A79B82',al:'#EAE3D2',hov:'#DDD6C3',g0:'#E2DFCD',g1:'#C2CEA2',g2:'#98B074',g3:'#708D56',g4:'#52663C'},
+  recon:{nm:'Recon',bg:'#F3EFE7',sf:'#EAE4D6',hv:'#7E6941',lt:'#DBD2BF',ink:'#221E17',sec:'#6D5E4A',mu:'#A99A82',al:'#ECE4D2',hov:'#E0D8C4',g0:'#E7E1D1',g1:'#DAC7A2',g2:'#C3A46C',g3:'#A07E44',g4:'#755830'},
   evergreen:{nm:'Evergreen',bg:'#F6FAF4',sf:'#E9F0E4',hv:'#5E7850',lt:'#D6E2CE',ink:'#18220F',sec:'#5E7850',mu:'#9CAC90',al:'#F2EFE3',hov:'#E0EAD8',g0:'#E4ECDE',g1:'#C4D8B8',g2:'#9CBE88',g3:'#729C5C',g4:'#4E7040'},
   overcast:{nm:'Overcast',bg:'#F7F8FA',sf:'#EBEEF2',hv:'#5C6878',lt:'#DAE0E8',ink:'#14181E',sec:'#5C6878',mu:'#9CA6B4',al:'#F3EEEA',hov:'#E2E7EE',g0:'#E6EAF0',g1:'#BECBDA',g2:'#92A9C2',g3:'#6788A8',g4:'#44607E'},
   desert:{nm:'High Desert',bg:'#FBF6ED',sf:'#F4EADA',hv:'#A67C3E',lt:'#EADCC2',ink:'#261A08',sec:'#906A34',mu:'#C4AE84',al:'#F8EEDF',hov:'#EFE4CE',g0:'#EFE7D6',g1:'#DCC9A0',g2:'#C4A870',g3:'#A8854A',g4:'#7E5F2E'},
@@ -901,13 +954,13 @@ const DEF_MS={
   swim:{lb:'1500m swim',c:1560,g:1440,base:1560,u:'time',lw:true}
 };
 const WARMUPS={
-  'Running':'Hip 90/90 switches ×10 ea · ankle circles ×5 ea · high knees · carioca R/L · side shuffle R/L · crossover jog R/L · forward skip · back pedal · knee hugs · ankle-grab quad stretch · elbow to instep · inch worm · lateral lunge · reverse lunge + arm raise · tin soldier kicks · squat jumps ×4 (each over 10 yd)',
-  'Crawl':'Bear crawl hand pickups ×6 ea · bear forward crawl · elbow to instep + 2 rotations · bear crawl sit-through ×4 ea · spiderman push-up · hip circles fwd/back ×6 ea · side bear crawl L/R · frog hops · inch worms · crab walk fwd (10 yd each)',
-  'In-place':'Glute bridge 3-s hold ×10 · hip 90/90 ×10 ea · knee-to-wall ×10 ea · reverse lunge elbow-to-instep +1 rotation ×5 ea · bentover Y/T/W raises ×10 · curtsey + lateral lunge ×5 ea · squat hold 30 s · lying swimmer raises ×5 · squat ×10 · high knees + butt kicks 15 s · front/back + side/side hops 10 s · squat jumps ×5',
-  'Conditioning':'Full field by level (I: 10-yd, II: 15-yd, III: 20-yd segments) — high knees, carioca R/L, side shuffle R/L, crossover jog R/L, forward skip, back-pedal between each'
+  'Running':'hip 90/90 switches ×10 ea · ankle circles right ×5 ea · ankle circles left ×5 ea · high knees · carioca right · carioca left · side shuffle right · side shuffle left · crossover jog right · crossover jog left · forward skip · back pedal · knee hugs · ankle grab quad stretch · elbow to instep · inch worm · lateral lunge · reverse lunge + arm raise · tin soldier/hamstring kick · squat jumps ×4',
+  'Crawl':'bear crawl hand pickups ×6 ea · bear forward crawl · elbow to instep + 2 rotations · bear crawl sit through ×4 ea · spiderman push up · hip circles forward ×6 ea · side bear crawl left · hip circles backward ×6 ea · side bear crawl right · frog hops · inch worms · crab walks forward',
+  'In-place':'glute bridge 3 second hold ×10 · hip 90/90 switches ×10 ea · knee to wall touches ×10 ea · reverse lunge elbow to instep + 1 rotation ×5 ea · bentover y raises ×10 · curtsey lunge ×5 ea · bentover t raises ×10 · lateral lunge ×5 ea · bentover w raises ×10 · squat holds at the bottom 30 s · lying swimmer raises ×5 · squat ×10 · high knees 15 s · butt kicks 15 s · front/back hops 10 s · side/side hops 10 s · squat jumps ×5',
+  'Conditioning':'high knees · carioca right · carioca left · side shuffle right · side shuffle left · crossover jog right · crossover jog left · forward skip'
 };
-const COOL='Hip flexor · prayer · scorpion pec · pigeon · butterfly · lying T-spine rotation · hip opener · V stretch · 90/90 hip rotation · wall calf · sleeper — hold each 0:30–1:00';
-const MOB='Foam roll calves, quads, TFL, hamstrings, glutes, T-spine, lats · tennis ball to foot arch, pec, posterior shoulder — 0:30–1:00 each (more if tender)';
+const COOL='hip flexor · prayer · scorpion pec · pigeon · butterfly · lying T-spine rotation · hip opener · V stretch · 90/90 hip rotation · wall calf · sleeper';
+const MOB='foam roll calves · foam roll quads · foam roll TFL · foam roll hamstrings · foam roll glutes · foam roll T-spine · foam roll lats · tennis ball to bottom of foot · tennis ball to pec · tennis ball to posterior shoulder';
 const NUT={
   hard:'Hard day — fill ~half your plate with complex carbs + lean protein. Eat 20–60 min before; refuel carbs + protein within 60 min after.',
   mod:'Moderate day — quality carbs from whole grains, protein at every meal. Refuel within 60 min of finishing.',
@@ -1032,116 +1085,424 @@ bw:{name:'Bodyweight / Calisthenics S&C',phases:[
 ]},
 gym:{name:'Full Gym Access S&C',phases:[
  {id:'P0',lb:'Phase 0 · Weeks 1–4',days:[
-  {t:'Day 1 — Hops, Sprints, Strength Technique, Swim-Tread',warm:'Conditioning L2–3 + In-place',int:'hard',exs:[
-   {block:'Hops & sprints',name:'Line Hops',sets:3,reps:'10',bw:true,group:'legs'},
-   {block:'Hops & sprints',name:'10 m Sprint (jog start)',sets:6,reps:'1',bw:true,group:'cardio'},
-   {block:'Hops & sprints',name:'Easy Walk',sets:1,mode:'time',time:'13 min',bw:true,group:'cardio'},
-   {block:'Strength (RPE 3–6)',name:'Squat',sets:3,reps:'5',rpe:5,prog:'fixed',group:'legs'},
-   {block:'Strength (RPE 3–6)',name:'DB Seated Overhead Press',sets:3,reps:'5',rpe:5,prog:'fixed',group:'shoulders'},
-   {block:'Strength (RPE 3–6)',name:'Romanian Deadlift',sets:2,reps:'8',rpe:5,prog:'fixed',group:'legs'},
-   {block:'Strength (RPE 3–6)',name:'Chest-Supported Row',sets:2,reps:'8',rpe:5,prog:'fixed',group:'back'},
-   {block:'Cal circuit',name:'Banded Pull-Up (slow down)',sets:4,reps:'10–12',bw:true,rpe:6,group:'back'},
-   {block:'Cal circuit',name:'Hand-Release Push-Up',sets:3,reps:'10–12',bw:true,rpe:6,group:'chest'},
-   {block:'Cal circuit',name:'Lateral Lunge',sets:4,reps:'6 ea',bw:true,rpe:6,group:'legs'},
-   {block:'Plank circuit',name:'Plank',sets:3,mode:'time',time:'30 s',bw:true,group:'core'},
+  {t:'Day 1 — Hops, Sprints, Strength Technique, Swim-Tread',warm:'Conditioning L2 + In-place',warmWk:['Conditioning L2 + In-place','Conditioning L3 + In-place','Conditioning L1 + In-place','Conditioning L3 + In-place'],int:'hard',exs:[
+   {block:'Hop/jump circuit',name:'Front/Back Line Hop',sets:[2,3,3,4],reps:'10',bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Side/Side Line Hop',sets:[2,2,3,3],reps:'10',bw:true,group:'legs'},
+   {block:'Sprint series',name:'Jogging Start 10 m Sprint',sets:[4,6,8,6],reps:'1',bw:true,group:'cardio'},
+   {block:'Sprint series',name:'Walking Start 10 m Sprint',sets:[4,6,6,6],reps:'1',bw:true,group:'cardio'},
+   {block:'Sprint series',name:'Walk (15:00/mi pace)',sets:1,mode:'time',time:['10 min','13 min','15 min','17 min'],bw:true,group:'cardio'},
+   {block:'Strength session',name:'Squat (BB/KB/DB)',sets:3,reps:'5',rpe:[4,5,6,3],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'DB Seated Overhead Press',sets:3,reps:'5',rpe:[4,5,6,3],prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Romanian Deadlift (BB/KB/DB)',sets:2,reps:'8',rpe:[4,4,4,3],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Chest-Supported Row (BB/KB/DB)',sets:2,reps:'8',rpe:[4,4,4,3],prog:'fixed',group:'back'},
+   {block:'Cal circuit',name:'Banded Pull-Up (slow down)',sets:[3,3,4,3],reps:['10','12','10','10'],bw:true,group:'back'},
+   {block:'Cal circuit',name:'Hand-Release Push-Up',sets:[3,3,4,3],reps:['10','12','10','10'],bw:true,group:'chest'},
+   {block:'Cal circuit',name:'Lateral Lunge (BW/DB/KB)',sets:[3,4,4,3],reps:'6 ea',bw:true,group:'legs'},
+   {block:'Plank circuit',name:'Normal Plank',sets:[2,2,3,2],mode:'time',time:'30 s',bw:true,group:'core'},
    {block:'Plank circuit',name:'Side Plank',sets:3,mode:'time',time:'20 s',bw:true,group:'core'},
-   {block:'Plank circuit',name:'Y-T-W Hold',sets:3,mode:'time',time:'15 s',bw:true,group:'shoulders'},
-   {block:'Swim',name:'Freestyle Drills (25 m)',sets:2,reps:'1',bw:true,group:'cardio'},
-   {block:'Swim',name:'Freestyle Swim (25–50 m)',sets:8,reps:'1',bw:true,group:'cardio'},
-   {block:'Swim',name:'Tread Water',sets:6,mode:'time',time:'20 s',bw:true,group:'cardio'}
+   {block:'Plank circuit',name:'Side Plank (top knee bent 90°)',sets:3,mode:'time',time:'15 s',bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (bottom knee bent 90°)',sets:3,mode:'time',time:'10 s',bw:true,group:'core'},
+   {block:'Plank circuit',name:'Lying Y-T-W Holds',sets:3,mode:'time',time:'15 s',bw:true,group:'shoulders'},
+   {block:'Swim',name:'2-Point Drill (25 m)',sets:2,reps:'1',bw:true,group:'cardio'},
+   {block:'Swim',name:'6-3-6 Drill (25 m)',sets:2,reps:'1',bw:true,group:'cardio'},
+   {block:'Swim',name:'Fingertip Drill (25 m)',sets:2,reps:'1',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[4,6,8,10],reps:'1',dist:'25 m',interval:['3:00','2:50','2:40','2:30'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[0,0,1,1],reps:'1',dist:'50 m',interval:['','','4:00','3:50'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Tread Water',sets:[8,8,8,6],mode:'time',time:['15 s','15 s','18 s','21 s'],bw:true,group:'cardio'}
   ],blocks:[
    ['Hops + sprints','Line hops 2–4×10 · jog/walk-start 10 m sprints ×4–8 · walk 10–17 min'],
    ['Strength session (RPE 3–6)','Squat (BB/KB/DB) 3×5 · DB seated OH press 3×5 · RDL 2×8 + chest-supported row 2×8 — form first, light and crisp'],
    ['Cal circuit','Banded pull-up (slow down) 3–4×10–12 · hand-release push-up 3×10–12 · lateral lunge 3–4×6 ea · rest 1–1:30'],
    ['Plank circuit','Normal 2–3×30 s · side variants 2–3×10–20 s · Y-T-W 3×15 s'],
    ['Swim','Drills 25 m ×2 each · freestyle 25–50 m ×4–10 · tread 6–8×15–21 s']]},
-  {t:'Day 2 — Sprints, Jog-Walk, Grip, Fin Conditioning',warm:'Running',int:'mod',blocks:[
+  {t:'Day 2 — Sprints, Jog-Walk, Grip, Fin Conditioning',warm:'Running',int:'mod',exs:[
+   {block:'Sprint series',name:'100 m Run (15–20 s)',sets:[7,9,11,13],reps:'1',bw:true,group:'cardio'},
+   {block:'Jog-walk',name:'300 m Jog',sets:[5,6,7,8],reps:'1',rpe:5,bw:true,group:'cardio'},
+   {block:'Jog-walk',name:'400 m Walk',sets:[5,6,7,8],reps:'1',bw:true,group:'cardio'},
+   {block:'Grip development',name:'Pull-Up Dead Hang (straight arms)',sets:[8,8,8,6],mode:'time',time:['15 s','15 s','15 s','20 s'],bw:true,group:'back'},
+   {block:'Swim',name:'Freestyle (25 m)',sets:[8,8,10,7],reps:'1',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle (50 m)',sets:[2,3,4,6],reps:'1',bw:true,group:'cardio'},
+   {block:'Swim',name:'Fin Freestyle / Combat Side Stroke (125 m)',sets:[8,8,8,6],reps:'1',rpe:5,bw:true,group:'cardio'}
+  ],blocks:[
    ['Run','100 m in 15–20 s ×7–13, rest 45 s · 300 m jog + 400 m walk ×5–8'],
    ['Grip','Dead hang 8×15 s→6×20 s'],
    ['Swim','Freestyle 25–50 m sets · fin freestyle / CSS 125–175 m ×6–8']]},
-  {t:'Day 4 — Intro Ruck, Hops, Strength Technique',warm:'Crawl',int:'hard',blocks:[
+  {t:'Day 4 — Intro Ruck, Hops, Strength Technique',warm:'Crawl',int:'hard',exs:[
+   {block:'Hop/jump circuit',name:'Front/Back Line Hop',sets:[2,3,3,4],reps:'10',bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Side/Side Line Hop',sets:[2,2,3,3],reps:'10',bw:true,group:'legs'},
+   {block:'Ruck',name:'Ruck (16:00/mi)',sets:1,reps:['1 mi / 20 lb','1.5 mi / 20 lb','1.5 mi / 20 lb','1 mi / 25 lb'],bw:true,group:'cardio'},
+   {block:'Strength session',name:'Flat Bench Press (BB/DB)',sets:3,reps:'5',rpe:[4,5,6,3],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Deadlift (Trap-Bar/BB/KB)',sets:3,reps:'5',rpe:[4,5,6,3],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Weighted + Unweighted Pull-Up',sets:2,reps:['1+2','2+2','2+3','1+2'],rpe:5,group:'back'},
+   {block:'Strength session',name:'Weighted Box Step-Up (BB/DB/KB)',sets:2,reps:'8 ea',rpe:[4,5,6,3],prog:'fixed',group:'legs'},
+   {block:'Cal circuit',name:'Inverted Row (8 s down)',sets:5,reps:'1',bw:true,group:'back'},
+   {block:'Cal circuit',name:'Push-Up (6 s hold-pause 1" off ground)',sets:5,reps:'4',bw:true,group:'chest'},
+   {block:'Cal circuit',name:'Glute Bridge',sets:3,reps:'10',bw:true,group:'legs'},
+   {block:'Cal circuit',name:'Bentover Reverse Fly',sets:3,reps:'10',group:'shoulders'},
+   {block:'Plank circuit',name:'Normal Plank',sets:2,mode:'time',time:'30 s',bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank',sets:2,mode:'time',time:'20 s',bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (top knee bent 90°)',sets:2,mode:'time',time:'20 s',bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (bottom knee bent 90°)',sets:2,mode:'time',time:'10 s',bw:true,group:'core'},
+   {block:'Plank circuit',name:'Lying Y-T-W Holds',sets:3,mode:'time',time:'15 s',bw:true,group:'shoulders'}
+  ],blocks:[
    ['Ruck','1→1.5 mi @ 20–25 lb at 16:00/mi'],
    ['Strength session (RPE 3–6)','Flat bench (BB/DB) 3×5 · deadlift (trap bar/BB/KB) 3×5 · weighted pull-up 2–3×1–3 + weighted box step-up 2–3×5–10 ea'],
    ['Cal circuit','Inverted row 8-s down 5–6×1–2 · push-up hold-pause 5–6×4 · glute bridge 3–4×10–12 · bentover reverse fly 3×6–12'],
    ['Plank circuit','Normal · side variants · Y-T-W holds']]},
-  {t:'Day 5 — OPTIONAL / Active Recovery: BW Cals + 500 m Swim',warm:'In-place',int:'rest',blocks:[
+  {t:'Day 5 — OPTIONAL / Active Recovery: BW Cals + 500 m Swim',warm:'In-place',int:'rest',exs:[
+   {block:'Cal circuit',name:'Bear Crawl Forward',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Push-Ups',sets:1,reps:'AMRAP',bw:true,group:'chest'},
+   {block:'Cal circuit',name:'Bear Crawl Sideway (Right)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Cal circuit',name:'Sit-Ups',sets:1,reps:'AMRAP',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Bear Crawl Sideway (Left)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Pull-Ups',sets:1,reps:'AMRAP',bw:true,group:'back'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Cal circuit',name:'Bear Crawl Sideways Carioca (Right)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Reverse Lunge',sets:1,reps:'20 ea',bw:true,group:'legs'},
+   {block:'Cal circuit',name:'Bear Crawl Sideways Carioca (Left)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Cal circuit',name:'Squat Jumps',sets:1,reps:'20',bw:true,group:'legs'},
+   {block:'Cal circuit',name:'Crab Walk (Forward)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Lying Y-T-W Holds',sets:1,mode:'time',time:'30 s',bw:true,group:'shoulders'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle (max distance, 500 m goal)',sets:1,reps:'1',bw:true,group:'cardio'}
+  ],blocks:[
    ['Cal circuit','Bear crawl complex + AMRAP push/pull/sit-ups, record time'],
    ['Swim','Freestyle 500 m+, breaks ≤20 s']]}]},
  {id:'P1',lb:'Phase 1 · Weeks 5–8',days:[
-  {t:'Day 1 — Hops, Sprints, Strength, Swim-Tread',warm:'Conditioning L2–3 + In-place',int:'hard',blocks:[
+  {t:'Day 1 — Hops, Sprints, Strength, Swim-Tread',warm:'Conditioning L3 + In-place',warmWk:['Conditioning L3 + In-place','Conditioning L2 (2 sets) + In-place','Conditioning L3 (2 sets) + In-place','Conditioning L2 + In-place'],int:'hard',exs:[
+   {block:'Hop/jump circuit',name:'Front/Back Line Hop',sets:[3,3,4,4],reps:['15','15','15','10'],bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Side/Side Line Hop',sets:[2,3,3,3],reps:['15','15','15','10'],bw:true,group:'legs'},
+   {block:'Sprint series',name:'Jogging Start Sprint',sets:8,reps:'1',dist:['20 m','30 m','40 m','30 m'],bw:true,group:'cardio'},
+   {block:'Sprint series',name:'Walking Start Sprint',sets:8,reps:'1',dist:['20 m','30 m','40 m','30 m'],bw:true,group:'cardio'},
+   {block:'Sprint series',name:'Walk (15:00/mi pace)',sets:1,mode:'time',time:['7 min','10 min','13 min','7 min'],bw:true,group:'cardio'},
+   {block:'Strength session',name:'Squat (BB/KB/DB) — technique sets',sets:3,reps:'5',rpe:[4,4,4,3],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat (BB/KB/DB) — working sets',sets:[5,5,5,3],reps:['5','5','5','3'],rpe:[5,6,7,4],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'DB Seated Overhead Press — technique sets',sets:3,reps:'5',rpe:[4,4,4,3],prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'DB Seated Overhead Press — working sets',sets:[5,5,5,3],reps:['5','5','5','3'],rpe:[5,6,7,4],prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Romanian Deadlift (BB/KB/DB)',sets:[4,3,3,2],reps:['5','8','6','8'],rpe:[5,5,6,3],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Bentover Row (BB/KB/DB)',sets:[4,3,3,2],reps:['5','8','8','8'],rpe:[5,5,6,3],prog:'fixed',group:'back'},
+   {block:'Cal circuit',name:'Pull-Up (band only to hit reps)',sets:3,mode:'time',time:['12 s','16 s','20 s','10 s'],bw:true,group:'back'},
+   {block:'Cal circuit',name:'Push-Ups',sets:3,mode:'time',time:['12 s','16 s','20 s','10 s'],bw:true,group:'chest'},
+   {block:'Cal circuit',name:'Curtsey Lunge',sets:3,mode:'time',time:['12 s','16 s','20 s','10 s'],bw:true,group:'legs'},
+   {block:'Cal circuit',name:'Sit-Up',sets:3,mode:'time',time:['12 s','16 s','20 s','10 s'],bw:true,group:'core'},
+   {block:'Cal circuit',name:'Glute Bridge',sets:3,mode:'time',time:['12 s','16 s','20 s','10 s'],bw:true,group:'legs'},
+   {block:'Plank circuit',name:'Normal Plank Alt Leg Lift Up 6"',sets:3,reps:['4 ea','5 ea','6 ea','4 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank Top Leg Raise 6"',sets:3,reps:['4 ea','5 ea','6 ea','4 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (top knee bent 90°)',sets:3,reps:['4 ea','5 ea','6 ea','4 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (bottom knee bent 90°)',sets:3,reps:['4 ea','5 ea','6 ea','4 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Lying Swimmers',sets:3,reps:['3','4','5','3'],bw:true,group:'shoulders'},
+   {block:'Plank circuit',name:'Lying Y-T-W Holds',sets:3,mode:'time',time:'20 s',bw:true,group:'shoulders'},
+   {block:'Swim',name:'Tread Water',sets:5,mode:'time',time:['25 s','30 s','40 s','50 s'],bw:true,group:'cardio'}
+  ],blocks:[
    ['Hops + sprints','Line hops 2–4×10–15 · 20–40 m sprints ×8 · walk 7–13 min'],
    ['Strength session','Squat 3–5×5 building to RPE 5–7 · DB seated OH press 3–5×5 · RDL 4×5–8 · bentover row 4×5–8 — small weekly load jumps, never miss reps'],
    ['Timed cal circuit','Pull-up / push-up / curtsey lunge / sit-up / glute bridge — 3×12–20 s AMRAP each, rest 1–1:30'],
    ['Plank circuit','Alt leg-lift planks, side raises, swimmers, Y-T-W'],
    ['Swim','Freestyle 25 m ×18–24→50–75 m · tread ×5, 25–50 s']]},
-  {t:'Day 2 — LSD, Sprints, Grip, Swim-Fin',warm:'Running',int:'mod',blocks:[
+  {t:'Day 2 — LSD, Sprints, Grip, Swim-Fin',warm:'Running',int:'mod',exs:[
+   {block:'Run',name:'LSD Run (10:00+ continuous)',sets:1,mode:'time',time:['12 min','18 min','24 min','18 min'],rpe:5,bw:true,group:'cardio'},
+   {block:'Sprint series',name:'200 m Run (36–42 s)',sets:[4,5,6,4],reps:'1',bw:true,group:'cardio',note:'rest 1:30 between reps'},
+   {block:'Grip development',name:'Pull-Up Dead Hang (straight arms)',sets:5,mode:'time',time:['25 s','30 s','40 s','50 s'],bw:true,group:'back'},
+   {block:'Swim',name:'Fin Freestyle / Combat Side Stroke',sets:5,reps:'1',dist:['225 m','275 m','350 m','425 m'],rpe:5,bw:true,group:'cardio'}
+  ],blocks:[
    ['Run','LSD 12→24 min RPE 5–6 · 200 m ×4–6, rest 1:30'],
    ['Grip','Dead hang 5×25→50 s'],
    ['Swim','Freestyle ladders · fin freestyle / CSS 225→425 m ×5']]},
-  {t:'Day 4 — Rucking, Hops, Strength',warm:'Crawl',int:'hard',blocks:[
+  {t:'Day 4 — Rucking, Hops, Strength',warm:'Crawl',int:'hard',exs:[
+   {block:'Hop/jump circuit',name:'Front/Back Line Hop',sets:[3,3,4,4],reps:['15','15','15','10'],bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Side/Side Line Hop',sets:[2,3,3,3],reps:['15','15','15','10'],bw:true,group:'legs'},
+   {block:'Ruck',name:'Ruck',sets:1,reps:['1.5 mi / 20 lb','2 mi / 20 lb','2.5 mi / 20 lb','2.5 mi / 25 lb'],bw:true,group:'cardio',note:'15:00–16:00 per mile pace'},
+   {block:'Strength session',name:'Flat Bench Press (BB/DB) — technique sets',sets:3,reps:'5',rpe:[4,4,4,3],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press (BB/DB) — working sets',sets:[5,5,5,3],reps:['5','5','5','3'],rpe:[5,6,7,4],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Deadlift (Trap-Bar/BB/KB) — technique sets',sets:3,reps:'5',rpe:[4,4,4,3],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift (Trap-Bar/BB/KB) — working sets',sets:[5,5,5,3],reps:['5','5','5','3'],rpe:[5,6,7,4],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Weighted + Unweighted Pull-Up',sets:[3,4,3,3],reps:'3+3',rpe:[5,5,6,4],group:'back'},
+   {block:'Strength session',name:'Reverse Lunge (BB/DB/KB)',sets:[4,4,3,4],reps:'5 ea',rpe:[5,5,6,4],prog:'fixed',group:'legs'},
+   {block:'Cal circuit',name:'Chin-Ups',sets:[2,3,3,2],reps:['6','6','10','6'],bw:true,group:'back'},
+   {block:'Cal circuit',name:'Banded Push-Ups',sets:[2,3,3,2],reps:['10','8','10','10'],bw:true,group:'chest'},
+   {block:'Cal circuit',name:'KB Swings',sets:[2,3,3,2],reps:['10','8','10','10'],group:'legs'},
+   {block:'Cal circuit',name:'Suspension Face Pull',sets:[2,3,3,2],reps:['12','10','12','12'],bw:true,group:'back'},
+   {block:'Cal circuit',name:'Farmer Carry (Trap-Bar/DB/KB)',sets:[2,3,3,2],reps:['25 yd','20 yd','30 yd','25 yd'],group:'back'},
+   {block:'Plank circuit',name:'Plank Lift Elbow Out to 90\u00b0',sets:[2,3,2,3],reps:['4 ea','4 ea','6 ea','3 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank Apple Pickers (bottom knee 90\u00b0)',sets:[2,3,2,3],reps:['4 ea','4 ea','6 ea','3 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (swing top leg front/back)',sets:[2,3,2,3],reps:['4 ea','4 ea','6 ea','3 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Side Plank (swing bottom leg front/back)',sets:[2,3,2,3],reps:['4 ea','4 ea','6 ea','3 ea'],bw:true,group:'core'},
+   {block:'Plank circuit',name:'Lying Swimmers',sets:3,reps:['3','4','5','3'],bw:true,group:'shoulders'},
+   {block:'Plank circuit',name:'Lying Y-T-W Holds',sets:3,mode:'time',time:'20 s',bw:true,group:'shoulders'}
+  ],blocks:[
    ['Ruck','1.5→2.5 mi @ 20–25 lb at 15–16:00/mi'],
    ['Strength session','Flat bench 3–5×5 to RPE 5–7 · deadlift 3–5×5 · weighted pull-up 3–4×3+3 · reverse lunge 4×5 ea'],
    ['Cal circuit','Chin-ups 2–3×6–10 · banded push-ups 2–3×8–10 · KB swings 2–3×8–10 · suspension face pull 2–3×10–12 · farmer carry 2–3×25–30 yd'],
    ['Plank circuit','Elbow-out planks, apple pickers, swimmers, Y-T-W']]},
-  {t:'Day 5 — OPTIONAL / Active Recovery: BW Cals + 500 m Swim',warm:'In-place',int:'rest',blocks:[
+  {t:'Day 5 — OPTIONAL / Active Recovery: BW Cals + 500 m Swim',warm:'In-place',int:'rest',exs:[
+   {block:'Cal circuit',name:'Bear Crawl Forward',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Push-Ups',sets:1,reps:'AMRAP',bw:true,group:'chest'},
+   {block:'Cal circuit',name:'Bear Crawl Sideway (Right)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Cal circuit',name:'Sit-Ups',sets:1,reps:'AMRAP',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Bear Crawl Sideway (Left)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Pull-Ups',sets:1,reps:'AMRAP',bw:true,group:'back'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Cal circuit',name:'Bear Crawl Sideways Carioca (Right)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Reverse Lunge',sets:1,reps:'20 ea',bw:true,group:'legs'},
+   {block:'Cal circuit',name:'Bear Crawl Sideways Carioca (Left)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Jog 100 yd',sets:1,reps:'1',bw:true,group:'cardio'},
+   {block:'Cal circuit',name:'Squat Jumps',sets:1,reps:'20',bw:true,group:'legs'},
+   {block:'Cal circuit',name:'Crab Walk (Forward)',sets:1,reps:'10 yd',bw:true,group:'core'},
+   {block:'Cal circuit',name:'Lying Y-T-W Holds',sets:1,mode:'time',time:'30 s',bw:true,group:'shoulders'},
+   {block:'Swim',name:'Freestyle (max distance, 500 m goal)',sets:1,reps:'1',bw:true,group:'cardio'}
+  ],blocks:[
    ['Cal circuit','Bear crawl complex + AMRAPs, record time'],
    ['Swim','Freestyle 500 m+']]}]},
  {id:'P2A',lb:'Phase 2A · Weeks 9–12',days:[
-  {t:'Day 1 — Hops, Sprints, Swim-Tread',warm:'Conditioning L1 + In-place',int:'mod',blocks:[
+  {t:'Day 1 — Hops, Sprints, Swim-Freestyle, Tread',warm:'Conditioning L1 + In-place',int:'mod',exs:[
+   {block:'Hop/jump circuit',name:'Single Leg Front/Back Line Hop',sets:3,reps:['10 ea','12 ea','15 ea','8 ea'],bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Single Leg Side/Side Hop',sets:3,reps:['10 ea','12 ea','15 ea','8 ea'],bw:true,group:'legs'},
+   {block:'Run-walk',name:'200 m Run (36\u201342 s)',sets:[4,5,6,3],reps:'1',bw:true,group:'cardio',note:'walk is rest'},
+   {block:'Run-walk',name:'Walk 200 m as Rest',sets:[4,5,6,3],reps:'1',bw:true,group:'cardio',note:'1:30'},
+   {block:'Swim',name:'Freestyle',sets:[2,2,2,3],reps:'1',dist:'50 m',interval:'rest 40 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[4,4,3,2],reps:'1',dist:['100 m','150 m','200 m','200 m'],interval:['rest 1:15','rest 2:00','rest 2:40','rest 2:40'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:4,reps:'1',dist:'25 m',interval:'rest 20 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Tread Water',sets:[4,4,4,3],mode:'time',time:['1:05','1:10','1:15','1:25'],bw:true,group:'cardio',note:'take 3 min rest before tread'}
+  ],blocks:[
    ['Hops + run-walk','Single-leg line hops 3×10–15 ea · 200 m in 36–42 s ×4–6, walk 200 m rest'],
    ['Swim','Freestyle 50–200 m ladders · tread ×3–4, 1:05–1:25']]},
-  {t:'Day 2 — LSD, Strength (build weight)',warm:'Running',int:'hard',blocks:[
+  {t:'Day 2 — LSD, Strength (build weight)',warm:'Running',int:'hard',exs:[
+   {block:'Run',name:'LSD Run (10:00+ continuous)',sets:1,mode:'time',time:['20 min','24 min','28 min','18 min'],rpe:5,bw:true,group:'cardio'},
+   {block:'Strength session',name:'Squat (BB/DB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — ramp single 1',sets:1,reps:'5',rpe:[5,6,7,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — ramp single 2',sets:1,reps:'5',rpe:[6,7,8,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — ramp single 3',sets:1,reps:'5',rpe:[7,8,9,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — working sets',sets:[5,3,5,3],reps:['5','5','3','5'],rpe:[5,7,7,4],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Standing Overhead Press (BB/DB)',sets:3,reps:'5',rpe:4,prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Standing Overhead Press — working sets',sets:[3,3,2,3],reps:'5',rpe:[6,6,6,5],prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Push Press (BB/DB/KB)',sets:[2,3,3,3],reps:'5',rpe:3,prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Bentover Row (BB/DB/KB)',sets:[4,5,4,5],reps:['8','6','4','6'],rpe:[6,6,6,4],prog:'fixed',group:'back'},
+   {block:'Strength session',name:'Single Leg RDL (DB/KB)',sets:[4,5,4,5],reps:['5 ea','5 ea','6 ea','5 ea'],rpe:[5,5,5,4],prog:'fixed',group:'legs'},
+   {block:'Strength circuit',name:'DB Flat Bench Press',sets:[3,3,4,3],mode:'time',time:['16 s','20 s','20 s','14 s'],group:'chest',note:'AMRAP in the time'},
+   {block:'Strength circuit',name:'Chin-Ups',sets:[3,3,4,3],mode:'time',time:['16 s','20 s','20 s','14 s'],bw:true,group:'back',note:'AMRAP in the time'},
+   {block:'Strength circuit',name:'KB or Plate Waiter Walk',sets:[3,3,4,3],mode:'time',time:['16 s','20 s','20 s','14 s'],group:'shoulders'},
+   {block:'Strength circuit',name:'Sit-Ups',sets:[3,3,4,3],mode:'time',time:['16 s','20 s','20 s','14 s'],bw:true,group:'core',note:'AMRAP in the time'},
+   {block:'Strength circuit',name:'Lying Y-T-W Holds',sets:[3,3,4,3],mode:'time',time:['16 s','20 s','20 s','14 s'],bw:true,group:'shoulders'}
+  ],blocks:[
    ['Run','LSD 18→28 min, HR zone 2'],
    ['Strength session','Squat — warm-up sets then top sets 5×3–5 climbing RPE 4→9 · standing OH press 2–3×5 · push press 3×3–5 · bentover row 4–6×6–8 · single-leg RDL 4–5×5–6 ea'],
    ['Strength circuit','DB flat bench · chin-ups · KB waiter walk · sit-ups · Y-T-W holds — 3–4×14–20 s AMRAP, record time']]},
-  {t:'Day 4 — Hops, LSD, Swim-Fin',warm:'Running',int:'mod',blocks:[
+  {t:'Day 4 — Hops, LSD, Swim-Fin',warm:'Running',int:'mod',exs:[
+   {block:'Hop/jump circuit',name:'Single Leg Front/Back Line Hop',sets:3,reps:['10 ea','12 ea','15 ea','8 ea'],bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Single Leg Side/Side Hop',sets:3,reps:['10 ea','12 ea','15 ea','8 ea'],bw:true,group:'legs'},
+   {block:'Run',name:'LSD Run (10:00+ continuous)',sets:1,mode:'time',time:['14 min','16 min','18 min','12 min'],rpe:5,bw:true,group:'cardio'},
+   {block:'Run',name:'Walk',sets:1,reps:['700 m','800 m','1000 m','600 m'],bw:true,group:'cardio'},
+   {block:'Grip development',name:'Pull-Up Dead Hang (straight arms)',sets:4,mode:'time',time:['1:00','1:10','1:20','1:30'],bw:true,group:'back'},
+   {block:'Swim',name:'Freestyle',sets:2,reps:'1',dist:'50 m',interval:'rest 40 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[9,6,4,2],reps:'1',dist:['75 m','100 m','100 m','300 m'],interval:['rest 2:00','rest 1:15','rest 1:15','rest 3:30'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[4,4,4,0],reps:'1',dist:'25 m',interval:'rest 20 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Fin Freestyle / Combat Side Stroke',sets:[4,4,4,3],reps:'1',dist:['525 m','575 m','650 m','725 m'],bw:true,group:'cardio'}
+  ],blocks:[
    ['Run','LSD 12→18 min + walk 600–1000 m'],
    ['Grip','Dead hang 4×1:00→1:30'],
    ['Swim','Freestyle ladders · fin 525→725 m']]},
-  {t:'Day 5 — Ruck, Strength (build weight)',warm:'Crawl',int:'hard',blocks:[
+  {t:'Day 5 — Ruck, Strength (build weight)',warm:'Crawl',int:'hard',exs:[
+   {block:'Ruck',name:'Ruck',sets:1,reps:['3 mi / 20 lb','3 mi / 25 lb','2 mi / 25 lb','3 mi / 25 lb'],bw:true,group:'cardio',note:'15:00\u201316:00 per mile pace'},
+   {block:'Strength session',name:'Flat Bench Press (BB/DB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — ramp single 1',sets:1,reps:'5',rpe:[5,6,7,5],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — ramp single 2',sets:1,reps:'5',rpe:[6,7,8,5],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — ramp single 3',sets:1,reps:'5',rpe:[7,8,9,5],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — working sets',sets:[5,3,5,3],reps:['5','5','3','3'],rpe:[6,7,7,4],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Deadlift (Trap-Bar/BB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — ramp single 1',sets:1,reps:'5',rpe:[5,6,7,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — ramp single 2',sets:1,reps:'5',rpe:[6,7,8,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — ramp single 3',sets:1,reps:'5',rpe:[7,8,9,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — working sets',sets:3,reps:['5','5','3','5'],rpe:[5,6,7,4],prog:'fixed',group:'legs'},
+   {block:'Strength circuit',name:'DB Rear-Foot-Elevated Split Squat',sets:[3,3,3,2],reps:['8 ea','6 ea','8 ea','8 ea'],rpe:[5,6,6,4],prog:'fixed',group:'legs'},
+   {block:'Strength circuit',name:'Weighted + Unweighted Pull-Ups',sets:[3,3,3,2],reps:['4+4','4+4','4+5','4+4'],rpe:[5,6,6,4],group:'back'},
+   {block:'Strength circuit',name:'Stability Ball In & Out (Bodysaw)',sets:[3,3,3,2],reps:['8 ea','10 ea','12 ea','8 ea'],bw:true,group:'core'},
+   {block:'Strength circuit',name:'Copenhagen Plank',sets:[3,3,3,2],reps:['5 ea','6 ea','6 ea','5 ea'],bw:true,group:'core'},
+   {block:'Strength circuit',name:'Farmer Carry (Trap-Bar/DB/KB)',sets:[3,3,3,2],reps:'30 yd',rpe:[6,6,7,4],group:'back'},
+   {block:'Strength circuit',name:'Bentover Reverse Fly',sets:[3,3,3,2],reps:['10','12','12','10'],group:'shoulders'}
+  ],blocks:[
    ['Ruck','2–3 mi @ 20–25 lb at 15–16:00/mi'],
    ['Strength session','Flat bench — warm-ups then 5×3–5 top sets RPE 4→9 · deadlift same scheme · DB rear-foot-elevated split squat 2–3×6–8 ea · weighted pull-up 3×4+4 · stability-ball body-saw 3–4×5–10 · Copenhagen plank 3×5–6 ea · farmer carry 2–3×30 yd RPE 6–7 · bentover reverse fly 2–3×10–12']]},
-  {t:'Day 6 — OPTIONAL / Active Recovery: Run, Cals, Swim',warm:'Running',int:'rest',blocks:[
+  {t:'Day 6 — OPTIONAL / Active Recovery: Run, Cals, Swim',warm:'Running',int:'rest',exs:[
+   {block:'Run-walk',name:'200 m Run (36\u201342 s)',sets:[4,5,6,3],reps:'1',rpe:5,bw:true,group:'cardio',note:'walk is rest'},
+   {block:'Run-walk',name:'Walk 200 m as Rest',sets:[4,5,6,3],reps:'1',rpe:4,bw:true,group:'cardio',note:'1:30'},
+   {block:'Cal circuit',name:'Pull-Ups',sets:1,reps:'30',bw:true,group:'back',note:'fewest sets possible'},
+   {block:'Cal circuit',name:'Push-Ups',sets:1,reps:'100',bw:true,group:'chest',note:'fewest sets possible'},
+   {block:'Cal circuit',name:'Sit-Ups',sets:1,reps:'100',bw:true,group:'core',note:'fewest sets possible'},
+   {block:'Cal circuit',name:'Side-Lying Shoulder External Rotation (elbow 90\u00b0)',sets:5,reps:'10',group:'shoulders'},
+   {block:'Cal circuit',name:'18" Box Step-Up',sets:5,reps:'5 ea',bw:true,group:'legs'},
+   {block:'Swim',name:'Freestyle (max distance, 500 m goal)',sets:1,reps:'1',bw:true,group:'cardio',note:'no break'}
+  ],blocks:[
    ['Run-walk','200 m ×4–6, walk rest'],
    ['Cal circuit','Pull-ups ×30 · push-ups ×100 · sit-ups ×100 fewest sets + external rotations, box step-ups'],
    ['Swim','Freestyle 500 m+ no break']]}]},
  {id:'P2B',lb:'Phase 2B · Weeks 13–16',days:[
-  {t:'Day 1 — Hops, Run-Conditioning, Swim-Tread',warm:'Conditioning L1 + In-place',int:'mod',blocks:[
+  {t:'Day 1 — Hops, Run-Conditioning, Swim-Tread',warm:'Conditioning L1 + In-place',int:'mod',exs:[
+   {block:'Hop/jump circuit',name:'Tuck Jumps',sets:[2,3,3,4],reps:'10',bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Pogo Hops for Max Height',sets:[2,2,3,3],reps:'10',bw:true,group:'legs'},
+   {block:'Run-walk',name:'200 m Run (36\u201342 s)',sets:[6,8,0,4],reps:'1',bw:true,group:'cardio',note:'walk is rest'},
+   {block:'Run-walk',name:'300 m Run (60\u201370 s)',sets:[0,0,6,0],reps:'1',bw:true,group:'cardio',note:'week 15 only \u00b7 walk is rest'},
+   {block:'Run-walk',name:'Walk 200 m as Rest',sets:[6,8,6,4],reps:'1',bw:true,group:'cardio',note:'1:30 (2:00 in week 15)'},
+   {block:'Swim',name:'Freestyle',sets:[3,1,2,2],reps:'1',dist:'50 m',interval:'rest 40 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[1,1,5,6],reps:'1',dist:['500 m','100 m','200 m','100 m'],interval:['rest 5:00','rest 1:15','rest 2:40','rest 1:15'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[4,1,4,4],reps:'1',dist:['25 m','200 m','25 m','25 m'],interval:['rest 20 s','rest 2:40','rest 20 s','rest 20 s'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[0,1,0,0],reps:'1',dist:'300 m',interval:'rest 3:15',bw:true,group:'cardio',note:'week 14 only'},
+   {block:'Swim',name:'Freestyle',sets:[0,1,0,0],reps:'1',dist:'200 m',interval:'rest 2:40',bw:true,group:'cardio',note:'week 14 only'},
+   {block:'Swim',name:'Freestyle',sets:[0,1,0,0],reps:'1',dist:'100 m',interval:'rest 1:15',bw:true,group:'cardio',note:'week 14 only'},
+   {block:'Swim',name:'Freestyle',sets:[0,1,0,0],reps:'1',dist:'25 m',interval:'rest 20 s',bw:true,group:'cardio',note:'week 14 only'},
+   {block:'Swim',name:'Tread Water',sets:2,mode:'time',time:['1:35','1:45','1:55','1:45'],bw:true,group:'cardio'}
+  ],blocks:[
    ['Hops + run-walk','Tuck jumps + pogo hops 2–4×10 · 200–300 m runs, walk rest'],
    ['Swim','Freestyle ladder 25–500 m · tread ×2, 1:35–1:55']]},
-  {t:'Day 2 — LSD, Strength (heavier, lower reps)',warm:'Running',int:'hard',blocks:[
+  {t:'Day 2 — LSD, Strength (heavier, lower reps)',warm:'Running',int:'hard',exs:[
+   {block:'Run',name:'LSD Run (10:00+ continuous)',sets:1,mode:'time',time:['24 min','28 min','32 min','20 min'],rpe:5,bw:true,group:'cardio'},
+   {block:'Strength session',name:'Squat (BB/DB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — ramp single 1',sets:1,reps:'3',rpe:[5,6,7,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — ramp single 2',sets:1,reps:'3',rpe:[6,7,8,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — ramp single 3',sets:1,reps:'3',rpe:[7,8,9,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — working sets',sets:[5,3,3,5],reps:'3',rpe:[5,6,7,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Push Press (BB/DB)',sets:3,reps:'5',rpe:4,prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Push Press — working sets',sets:[3,5,3,3],reps:'5',rpe:[6,6,6,4],prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Single Arm DB or KB Row',sets:4,reps:['8 ea','10 ea','12 ea','8 ea'],rpe:[6,7,7,4],prog:'fixed',group:'back'},
+   {block:'Strength session',name:'Single Leg RDL (DB/KB)',sets:4,reps:['5 ea','6 ea','6 ea','5 ea'],rpe:[5,5,5,4],prog:'fixed',group:'legs'},
+   {block:'Strength circuit',name:'DB Flat Bench Press',sets:4,mode:'time',time:['10 s','10 s','12 s','10 s'],group:'chest',note:'AMRAP in the time'},
+   {block:'Strength circuit',name:'Pull-Up (5 s down)',sets:4,reps:['4','4','5','4'],bw:true,group:'back'},
+   {block:'Strength circuit',name:'KB Front Rack Carry',sets:3,mode:'time',time:['10 s','10 s','12 s','10 s'],group:'core',note:'max distance'},
+   {block:'Strength circuit',name:'Weighted or Decline Sit-Ups',sets:3,mode:'time',time:['10 s','10 s','12 s','10 s'],group:'core',note:'AMRAP in the time'},
+   {block:'Strength circuit',name:'DB or Plate Lateral Raises',sets:3,mode:'time',time:['10 s','10 s','12 s','10 s'],group:'shoulders',note:'AMRAP in the time'},
+   {block:'Strength circuit',name:'Weighted Curtsey Lunge',sets:3,mode:'time',time:['10 s','10 s','12 s','10 s'],group:'legs',note:'AMRAP in the time'}
+  ],blocks:[
    ['Run','LSD 24→32 min (20 min deload wk 16)'],
    ['Strength session','Squat 3×5 then 1×3 back-offs climbing RPE 8–9, 5×3 top · push press 2×5 · single-arm DB/KB row 4×8–12 ea · SL RDL 4×5–6 ea'],
    ['Strength circuit','DB flat bench 4×10–12 s AMRAP · pull-up 5-s down 4×4–5 · KB front-rack carry 3×10–12 s · weighted/decline sit-ups 3–4×10–12 · lateral raises · weighted curtsey lunge 3×10–12 s']]},
-  {t:'Day 4 — Hops, Fartlek, Swim-Fin',warm:'Running',int:'mod',blocks:[
+  {t:'Day 4 — Hops, Fartlek, Swim-Fin',warm:'Running',int:'mod',exs:[
+   {block:'Hop/jump circuit',name:'Lateral Step-Up Jump',sets:[2,3,3,2],reps:'10',bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'Pogo Hops for Max Height',sets:[2,2,3,2],reps:'10',bw:true,group:'legs'},
+   {block:'Run',name:'Fartlek Run \u2014 burst 1 min every 4th min',sets:1,mode:'time',time:['16 min','20 min','24 min','14 min'],rpe:5,bw:true,group:'cardio',note:'burst around 7:00 pace'},
+   {block:'Grip development',name:'Pull-Up Dead Hang (straight arms)',sets:2,mode:'time',time:['1:35','1:45','2:00','1:45'],bw:true,group:'back'},
+   {block:'Swim',name:'Freestyle',sets:[2,2,4,4],reps:'1',dist:'50 m',interval:'rest 40 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[4,3,3,3],reps:'1',dist:['150 m','200 m','200 m','150 m'],interval:['rest 2:00','rest 2:40','rest 2:40','rest 2:00'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[4,8,8,8],reps:'1',dist:'25 m',interval:'rest 20 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Fin Freestyle / Combat Side Stroke',sets:2,reps:'1',dist:['800 m','900 m','1000 m','875 m'],bw:true,group:'cardio'}
+  ],blocks:[
    ['Run','Lateral step-up jumps + pogos 2–3×10 · fartlek 14→24 min, 1-min burst every 4th'],
    ['Grip','Dead hang 2×1:35→2:00'],
    ['Swim','Freestyle 25–200 m · fin 800–1000 m ×2']]},
-  {t:'Day 5 — Ruck, Strength (heavier)',warm:'Crawl',int:'hard',blocks:[
+  {t:'Day 5 — Ruck, Strength (heavier)',warm:'Crawl',int:'hard',exs:[
+   {block:'Ruck',name:'Ruck',sets:1,reps:['3 mi / 25 lb','4 mi / 25 lb','2 mi / 25 lb','3 mi / 30 lb'],bw:true,group:'cardio',note:'15:00\u201316:00 per mile pace'},
+   {block:'Strength session',name:'Flat Bench Press (BB/DB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — ramp single 1',sets:1,reps:'3',rpe:[5,6,7,5],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — ramp single 2',sets:1,reps:'3',rpe:[6,7,8,5],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — ramp single 3',sets:1,reps:'3',rpe:[7,8,9,5],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — working sets',sets:[5,3,3,5],reps:'3',rpe:[5,6,3,4],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Deadlift (Trap-Bar/BB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — working sets',sets:3,reps:'3',rpe:[6,7,8,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — back-off sets',sets:2,reps:'3',rpe:[4,5,4,4],prog:'fixed',group:'legs'},
+   {block:'Strength circuit',name:'DB or KB Lateral Lunge',sets:[4,4,4,3],reps:['6 ea','7 ea','8 ea','6 ea'],rpe:5,prog:'fixed',group:'legs'},
+   {block:'Strength circuit',name:'Weighted + Unweighted Pull-Ups',sets:[4,4,4,3],reps:'5+5',rpe:[5,6,7,5],group:'back'},
+   {block:'Strength circuit',name:'Stability Ball Circles (Stir the Pot)',sets:[3,4,4,3],reps:['6 ea','8 ea','10 ea','6 ea'],bw:true,group:'core'},
+   {block:'Strength circuit',name:'Weighted Push-Ups',sets:[3,4,4,3],reps:['10','12','12','10'],group:'chest'},
+   {block:'Strength circuit',name:'Farmer Carry (Trap-Bar/DB/KB)',sets:[3,4,3,3],reps:'25 yd',rpe:[6,6,6,5],group:'back'},
+   {block:'Strength circuit',name:'Glute Ham Raise',sets:[3,3,3,2],reps:'8',bw:true,group:'legs'},
+   {block:'Strength circuit',name:'Cuban Press',sets:[3,3,3,2],reps:'8',group:'shoulders'}
+  ],blocks:[
    ['Ruck','3→4 mi @ 25 lb (30 lb wk 16) at 15–16:00/mi'],
    ['Strength session','Flat bench 3×5→3×3 RPE 8–9 · deadlift 3×3–5 · DB/KB lateral lunge 4×6–8 ea · weighted pull-up 4×5+5 · stability-ball stir-the-pot 3×6–10 ea · weighted push-ups 3–4×10–12 · farmer carry · glute-ham raise 2–3×8 · Cuban press 3×8']]},
-  {t:'Day 6 — OPTIONAL / Active Recovery: Run, Cals, Swim',warm:'Running',int:'rest',blocks:[
+  {t:'Day 6 — OPTIONAL / Active Recovery: Run, Cals, Swim',warm:'Running',int:'rest',exs:[
+   {block:'Run-walk',name:'200 m Run (36\u201342 s)',sets:[5,6,7,3],reps:'1',rpe:5,bw:true,group:'cardio',note:'walk is rest'},
+   {block:'Run-walk',name:'Walk 200 m as Rest',sets:[5,6,7,3],reps:'1',rpe:4,bw:true,group:'cardio',note:'1:30'},
+   {block:'Cal circuit',name:'Pull-Ups',sets:1,reps:'40',bw:true,group:'back',note:'fewest sets possible'},
+   {block:'Cal circuit',name:'Push-Ups',sets:1,reps:'110',bw:true,group:'chest',note:'fewest sets possible'},
+   {block:'Cal circuit',name:'Sit-Ups',sets:1,reps:'110',bw:true,group:'core',note:'fewest sets possible'},
+   {block:'Cal circuit',name:'Side-Lying Shoulder External Rotation (elbow 90\u00b0)',sets:5,reps:'10',group:'shoulders'},
+   {block:'Cal circuit',name:'18" Box Step-Up',sets:5,reps:'5 ea',bw:true,group:'legs'},
+   {block:'Swim',name:'Freestyle (max distance, 500 m goal)',sets:1,reps:'1',bw:true,group:'cardio',note:'no break'}
+  ],blocks:[
    ['Run-walk','200 m ×5–7, walk rest'],
    ['Cal circuit','Pull-ups ×40 · push-ups ×110 · sit-ups ×110 fewest sets'],
    ['Swim','Freestyle 500 m+ no break']]}]},
  {id:'P3',lb:'Phase 3 · Weeks 17–20',days:[
-  {t:'Day 1 — Run-Conditioning, Swim-Tread',warm:'Conditioning L1 + In-place',int:'mod',blocks:[
+  {t:'Day 1 — Run-Conditioning, Swim-Tread',warm:'Conditioning L1 + In-place',int:'mod',exs:[
+   {block:'Hop/jump circuit',name:'Depth Jumps (12" box)',sets:[4,4,4,3],reps:'5',bw:true,group:'legs'},
+   {block:'Run-walk',name:'200 m Run (36\u201342 s)',sets:[6,8,0,4],reps:'1',bw:true,group:'cardio',note:'walk is rest'},
+   {block:'Run-walk',name:'300 m Run (60\u201370 s)',sets:[0,0,6,0],reps:'1',bw:true,group:'cardio',note:'week 19 only \u00b7 walk is rest'},
+   {block:'Run-walk',name:'Walk 200 m as Rest',sets:[6,8,0,4],reps:'1',bw:true,group:'cardio',note:'1:30'},
+   {block:'Run-walk',name:'Walk 100 m as Rest',sets:[0,0,6,0],reps:'1',bw:true,group:'cardio',note:'week 19 only \u00b7 2:00'},
+   {block:'Swim',name:'Freestyle',sets:1,reps:'1',dist:['50 m','50 m','100 m','25 m'],interval:['rest 40 s','rest 40 s','rest 1:15','rest 20 s'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:1,reps:'1',dist:['100 m','100 m','200 m','50 m'],interval:['rest 1:15','rest 1:15','rest 2:40','rest 40 s'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:1,reps:'1',dist:['200 m','200 m','500 m','100 m'],interval:['rest 2:40','rest 2:40','rest 5:00','rest 1:15'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:1,reps:'1',dist:['300 m','400 m','200 m','200 m'],interval:['rest 3:15','rest 4:20','rest 2:40','rest 2:40'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:1,reps:'1',dist:['200 m','200 m','100 m','100 m'],interval:['rest 2:40','rest 2:40','','rest 1:15'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[1,1,0,1],reps:'1',dist:['100 m','100 m','','50 m'],interval:['rest 1:15','rest 1:15','','rest 40 s'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:[1,1,0,1],reps:'1',dist:['25 m','50 m','','25 m'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Tread Water',sets:1,mode:'time',time:['2:10','2:25','2:40','3:00'],bw:true,group:'cardio'}
+  ],blocks:[
    ['Hops + run-walk','Depth jumps 12-in box 3–4×5 · 200–300 m runs, walk rest'],
    ['Swim','Freestyle long ladder 25–500 m · tread 2:10→3:00']]},
-  {t:'Day 2 — LSD, Strength (maintain)',warm:'Running',int:'hard',blocks:[
+  {t:'Day 2 — LSD, Strength (maintain)',warm:'Running',int:'hard',exs:[
+   {block:'Run',name:'LSD Run (10:00+ continuous)',sets:1,mode:'time',time:['20 min','24 min','28 min','20 min'],rpe:5,bw:true,group:'cardio'},
+   {block:'Strength session',name:'Squat (BB/DB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Squat — working sets',sets:[5,5,5,3],reps:['3','3','3','5'],rpe:[8,8,8,4],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Pull-Ups',sets:[8,8,8,6],reps:['12','12','12','10'],bw:true,group:'back'},
+   {block:'Strength session',name:'Push Press (BB/DB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'Push Press — working sets',sets:[3,3,3,2],reps:'3',rpe:[6,6,6,4],prog:'fixed',group:'shoulders'},
+   {block:'Strength session',name:'DB or KB Single Arm Row',sets:[6,6,6,5],reps:['10 ea','12 ea','12 ea','8 ea'],rpe:6,prog:'fixed',group:'back'},
+   {block:'Strength circuit',name:'KB Swing',sets:[4,4,4,3],reps:['10','12','12','12'],group:'legs'},
+   {block:'Strength circuit',name:'Explosive or Clapping Push-Up',sets:[4,4,4,3],reps:'10',bw:true,group:'chest'},
+   {block:'Strength circuit',name:'18" Box Step-Up',sets:[4,4,4,3],reps:'6 ea',bw:true,group:'legs'},
+   {block:'Core circuit',name:'Sit-Ups',sets:[3,3,3,2],reps:'25',bw:true,group:'core'},
+   {block:'Core circuit',name:'Side Planks',sets:[3,3,3,2],mode:'time',time:'30 s',bw:true,group:'core'},
+   {block:'Core circuit',name:'Bentover Y-T-W Raises',sets:[3,3,3,2],reps:'10 ea',group:'shoulders'}
+  ],blocks:[
    ['Run','LSD 20→28 min'],
    ['Strength session','Squat 3×5 + 5×3 heavy maintain RPE 4–8 · pull-ups 6–8×12 · push press 3×3–5 · DB/KB single-arm row 6×10–12 ea'],
    ['Circuit','KB swing 3–4×10–12 · explosive/clapping push-up 4×3–10 · 18-in box step-up 3–4×6 ea · sit-ups 2–3×25 · side planks 2–3×30 s ea · bentover Y-T-W raises 2–3×10']]},
-  {t:'Day 3 — Fin Conditioning',warm:'In-place',int:'mod',blocks:[
+  {t:'Day 3 — Fin Conditioning',warm:'In-place',int:'mod',exs:[
+   {block:'Swim',name:'Freestyle',sets:[10,7,5,2],reps:'1',dist:['50 m','100 m','200 m','300 m'],interval:['rest 40 s','rest 1:15','rest 2:40','rest 3:15'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Fin Freestyle / Combat Side Stroke',sets:1,reps:'1',dist:['1100 m','1225 m','1350 m','1500 m'],bw:true,group:'cardio',note:'final build to a 1500 m fin'}
+  ],blocks:[
    ['Swim','Freestyle 50–300 m ladder · fin freestyle / CSS 1100→1500 m — the final build to a full 1500 m fin']]},
-  {t:'Day 4 — Hops, Strength Capacity',warm:'In-place',int:'hard',blocks:[
+  {t:'Day 4 — Hops, Strength Capacity',warm:'In-place',int:'hard',exs:[
+   {block:'Hop/jump circuit',name:'Speed Skater Jump',sets:[4,4,4,3],reps:'6',bw:true,group:'legs'},
+   {block:'Hop/jump circuit',name:'400 m Run (90 s to complete)',sets:[3,4,5,2],reps:'1',bw:true,group:'cardio',note:'minimal rest'},
+   {block:'Strength session',name:'Deadlift (Trap-Bar/BB/KB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Deadlift — working sets',sets:5,reps:'3',rpe:[8,9,10,5],prog:'fixed',group:'legs'},
+   {block:'Strength session',name:'Band Pull-Aparts',sets:[8,8,8,6],reps:'12',group:'shoulders'},
+   {block:'Strength session',name:'Flat Bench Press (BB/DB) — warm-up sets',sets:3,reps:'5',rpe:4,prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Flat Bench Press — working sets',sets:[3,4,4,3],reps:'10',rpe:[6,6,7,4],prog:'fixed',group:'chest'},
+   {block:'Strength session',name:'Pull-Ups',sets:[6,7,7,6],reps:['12','12','12','8'],rpe:[6,6,6,4],bw:true,group:'back'},
+   {block:'Strength circuit',name:'Dips',sets:[4,4,4,3],reps:['10','12','12','10'],bw:true,group:'chest'},
+   {block:'Strength circuit',name:'RFE Split Squat',sets:[4,4,4,3],reps:['10 ea','12 ea','12 ea','10 ea'],group:'legs'},
+   {block:'Strength circuit',name:'Farmer Carry (Trap-Bar/DB/KB)',sets:[4,4,4,3],reps:'30 yd',group:'back'},
+   {block:'Core circuit',name:'Sit-Ups',sets:[3,3,3,2],reps:'25',bw:true,group:'core'},
+   {block:'Core circuit',name:'Med Ball Side Toss',sets:[3,3,3,2],reps:'6 ea',group:'core'},
+   {block:'Core circuit',name:'Back Extensions',sets:[3,3,3,2],reps:'10',bw:true,group:'legs'}
+  ],blocks:[
    ['Hops','Speed skater jumps 3–4×6 · 400 m run in 90 s ×2–5, minimal rest'],
    ['Strength session','Deadlift 3–5×3–5 RPE 4–10 · band pull-aparts 6–8×12 · flat bench 3×5 + 3–4×10 RPE 6–7 · pull-ups 6–7×12 · dips 4×10–12 · RFE split squat 3–4×10–12 ea · farmer carry 3–4×30 yd · sit-ups 2–3×25 · med-ball side toss 2–3×6 ea · back extensions 2–3×10']]},
-  {t:'Day 5 — Fartlek, Swim Conditioning',warm:'Running',int:'mod',blocks:[
+  {t:'Day 5 — Fartlek, Swim Conditioning',warm:'Running',int:'mod',exs:[
+   {block:'Run',name:'Fartlek Run \u2014 burst 1 min every 4th min',sets:1,mode:'time',time:['18 min','20 min','22 min','16 min'],rpe:5,bw:true,group:'cardio',note:'burst to RPE 8\u20139, then bring HR down'},
+   {block:'Grip development',name:'Pull-Up Dead Hang (straight arms)',sets:1,mode:'time',time:['2:10','2:30','2:45','3:00'],bw:true,group:'back'},
+   {block:'Swim',name:'Freestyle',sets:4,reps:'1',dist:['25 m','50 m','100 m','25 m'],interval:['rest 20 s','rest 40 s','rest 1:15','rest 20 s'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:3,reps:'1',dist:['50 m','100 m','150 m','50 m'],interval:['rest 40 s','rest 1:15','rest 2:00','rest 40 s'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:2,reps:'1',dist:['100 m','200 m','300 m','100 m'],interval:['rest 1:15','rest 2:40','rest 3:15','rest 1:15'],bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:3,reps:'1',dist:'50 m',interval:'rest 40 s',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:2,reps:'1',dist:'100 m',interval:'rest 1:15',bw:true,group:'cardio'},
+   {block:'Swim',name:'Freestyle',sets:1,reps:'1',dist:'200 m',bw:true,group:'cardio'}
+  ],blocks:[
    ['Run','Fartlek 16→22 min, bursts RPE 8–9, settle HR fast'],
    ['Grip','Dead hang 1×2:10→3:00'],
    ['Swim','Freestyle interval set 25–300 m']]},
-  {t:'Day 6 — Ruck, Cals Circuit',warm:'Crawl',int:'hard',blocks:[
+  {t:'Day 6 — Ruck, Cals Circuit',warm:'Crawl',int:'hard',exs:[
+   {block:'Ruck',name:'Ruck',sets:1,reps:['3 mi / 30 lb','4 mi / 30 lb','2 mi / 35 lb','3 mi / 35 lb'],bw:true,group:'cardio',note:'15:00\u201316:00 per mile pace \u00b7 do not run'},
+   {block:'Cals circuit',name:'Pull-Ups',sets:1,reps:'50',bw:true,group:'back',note:'fewest sets possible'},
+   {block:'Cals circuit',name:'Push-Ups',sets:1,reps:'120',bw:true,group:'chest',note:'fewest sets possible'},
+   {block:'Cals circuit',name:'Sit-Ups',sets:1,reps:'120',bw:true,group:'core',note:'fewest sets possible'},
+   {block:'Cals circuit',name:'Side-Lying Shoulder External Rotation (elbow 90\u00b0)',sets:5,reps:'10',group:'shoulders'},
+   {block:'Cals circuit',name:'18" Box Step-Up',sets:5,reps:'5 ea',bw:true,group:'legs'}
+  ],blocks:[
    ['Ruck','2–4 mi @ 30–35 lb at 15–16:00/mi'],
    ['Cals circuit','Pull-ups ×50 · push-ups ×120 · sit-ups ×120 fewest sets · external rotations 5×10 · box step-up 5×5 ea · record time']]}]}
 ]}};
@@ -1818,12 +2179,20 @@ function getProgram(key){
   }
   return PLANS[key]||null;
 }
+function wkVal(v,wk){return Array.isArray(v)?v[Math.min(Math.max(1,wk||1)-1,v.length-1)]:v;}
+function resolveDay(day,wk){
+  if(!day)return day;
+  var d=Object.assign({},day);
+  if(day.warmWk)d.warm=wkVal(day.warmWk,wk);
+  if(day.exs)d.exs=day.exs.map(function(ex){var e=Object.assign({},ex);['sets','reps','rpe','time','weight','interval','dist'].forEach(function(k){if(Array.isArray(ex[k]))e[k]=wkVal(ex[k],wk);});return e;});
+  return d;
+}
 function planCtx(){
   const p=st.plan;
   const prog=getProgram(p.prog);
   if(!prog)return null;
   const ph=prog.phases[Math.min(p.ph,prog.phases.length-1)];
-  const day=ph.days[Math.min(p.day,ph.days.length-1)];
+  const day=resolveDay(ph.days[Math.min(p.day,ph.days.length-1)],p.wk||1);
   return {prog,ph,day,p};
 }
 function warmDetail(warm){return Object.keys(WARMUPS).filter(k=>warm.toLowerCase().indexOf(k.toLowerCase())>=0).map(k=>'<div style="margin-bottom:6px"><strong style="color:var(--sec)">'+k+' warm-up:</strong> '+WARMUPS[k]+'</div>').join('');}
@@ -1852,7 +2221,7 @@ function rPlan(){
   }
   el.innerHTML='<div class="plan-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="blk-badge">'+prog.name+'</span><span style="font-size:11px;color:var(--mu);font-family:\'DM Mono\',monospace">'+ph.lb+(isCustom?'':' · Week '+p.wk+' of 4')+'</span></div>'+
     '<div class="plan-day">'+day.t+'</div>'+body+
-    '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="sm-btn primary" style="padding:8px 16px" onclick="planToLogger()">Start / log this day</button><button class="sm-btn" style="padding:8px 16px" onclick="planAdvance()">Mark complete →</button>'+(isCustom?'<button class="sm-btn" style="padding:8px 16px" onclick="editActiveCp()">Edit plan</button>':'')+'</div></div>';
+    '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="sm-btn primary" style="padding:8px 16px" onclick="guideStart()">Start workout</button><button class="sm-btn" style="padding:8px 16px" onclick="planToLogger()">Quick log</button><button class="sm-btn" style="padding:8px 16px" onclick="planAdvance()">Mark complete →</button>'+(isCustom?'<button class="sm-btn" style="padding:8px 16px" onclick="editActiveCp()">Edit plan</button>':'')+'</div></div>';
 }
 function exRow(name,detail,group,note){
   var chip=(group&&EXGROUPS[group])?EXGROUPS[group].c:'var(--lt)';
@@ -1864,7 +2233,7 @@ function exDetail(e){
   if(!main)main='—';
   return main+(e.rest?' · rest '+e.rest+'s':'');
 }
-function stepRows(str){return String(str||'').split(' · ').map(function(mv){return exRow(mv.trim(),'','');}).join('');}
+function stepRows(str){return String(str||'').split(' · ').map(function(mv){return exRow(titleCase(mv.trim()),'','');}).join('');}
 function warmSection(warmStr){
   var parts=String(warmStr||'').split('+').map(function(s){return s.trim();}).filter(Boolean);
   return parts.map(function(pt){
@@ -1946,6 +2315,113 @@ function prefillLine(pf,rest){
   return s.map(function(x){var w=(x.weight!==''&&x.weight!=null)?x.weight+'×':'';return w+(rtOf(x)||'');}).join(' · ')+tail;
 }
 function editActiveCp(){if(st.plan.prog&&st.plan.prog.indexOf('cp:')===0)openCpEdit(st.plan.prog.slice(3));}
+// ═══ GUIDED WORKOUT FLOW ═══
+var guide=null;
+function titleCase(str){function cw(x){if(!x)return x;if(/^[×\d]/.test(x))return x;if(/^(yd|s|sec|secs|min|mins|m|ft|ea|x|reps|rep|to|the|of|and|per)$/i.test(x))return x.toLowerCase();return x.split(/([-/])/).map(function(p){return (p==='-'||p==='/')?p:(p?p.charAt(0).toUpperCase()+p.slice(1):p);}).join('');}return String(str).split(' ').map(cw).join(' ');}
+function stepSecs(name,def){var m;if(m=/(\d+)\s*(?:s|sec)\b/i.exec(name))return +m[1];if(m=/(\d+)\s*min/i.exec(name))return (+m[1])*60;if(m=/\b(\d+):(\d+)/.exec(name))return (+m[1])*60+(+m[2]);return def==null?null:def;}
+function condDist(pt){var s=String(pt||'');if(/III|3/.test(s))return '20 yd';if(/II|2/.test(s))return '15 yd';if(/\bI\b|1/.test(s))return '10 yd';return '';}
+function fmtT(s){s=Math.max(0,s|0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function guideWarmSteps(warmStr){var steps=[];String(warmStr||'').split('+').map(function(s){return s.trim();}).filter(Boolean).forEach(function(pt){var key=Object.keys(WARMUPS).filter(function(k){return pt.toLowerCase().indexOf(k.toLowerCase())>=0;})[0];var dist=(key==='Conditioning')?condDist(pt):'';(key?WARMUPS[key]:pt).split(' · ').forEach(function(mv){mv=mv.trim();if(!mv)return;var nm=titleCase(mv);if(dist)nm=dist+' '+nm;steps.push({name:nm,secs:stepSecs(mv,null)});});});return steps;}
+function guideStart(){
+  var c=planCtx();if(!c){toast('No active plan day.');return;}
+  var exs=planDayExercises(c.day).map(function(pe){
+    var pf=pe.ex?prefill(pe.ex):{sets:[{reps:pe.reps||'',time:'',weight:''}],note:'',mode:'reps',bw:false,rpe:''};
+    return {name:pe.name,block:pe.block||'',group:(pe.ex&&pe.ex.group)||'',mode:pf.mode||'reps',bw:!!pf.bw,rest:(pe.ex&&+pe.ex.rest)||90,note:pf.note||'',
+      sub:(function(){var d=pe.ex&&pe.ex.dist,iv=pe.ex&&pe.ex.interval,p=[];if(d)p.push(d);if(iv)p.push('@ '+iv+' send-off');return p.join(' ');})(),
+      sets:pf.sets.map(function(s){return {reps:s.reps||'',time:s.time||'',weight:s.weight||'',rpe:(s.rpe!=null&&s.rpe!==''?s.rpe:(pf.rpe||'')),done:false};})};
+  });
+  if(!exs.length){toast('No exercises in this day.');return;}
+  var isC=!!c.prog.custom;
+  function steps(str){return String(str||'').split(' · ').map(function(x){x=x.trim();return {name:titleCase(x),secs:stepSecs(x,45)};}).filter(function(x){return x.name;});}
+  guide={prog:c.prog.name,dayT:c.day.t,exs:exs,warm:guideWarmSteps(c.day.warm),cool:isC?[]:steps(COOL),mob:isC?[]:steps(MOB),phase:'preview',idx:0,rest:0,restId:null,restPreset:0,workoutDone:false,notes:''};
+  openMo('mo-guide');guideRender();
+}
+function guideGo(phase,idx){guideStopRest();guide.phase=phase;if(idx!=null)guide.idx=idx;guide.rest=0;guideRender();}
+function gcolor(g){return (g&&EXGROUPS[g])?EXGROUPS[g].c:'var(--hv)';}
+function guidePresc(e){var s=e.sets;if(!s.length)return '';var f=s[0],rt=[];if(f.reps)rt.push(f.reps);if(f.time)rt.push(f.time);var m=s.length+' × '+(rt.join('/')||'—');if(f.weight)m+=' · '+f.weight+' lb';return m;}
+function exerciseCue(name){var n=(name||'').toLowerCase();var C=[[/bench|push-up|press|dip|fly/,'Shoulders back and down · control the descent · drive up hard'],[/squat|lunge|step-up|leg press|split/,'Brace your core · knees track over toes · own the depth'],[/deadlift|rdl|hinge|hip thrust|glute|good morning/,'Neutral spine · hinge at the hips · push the floor away'],[/pull-up|chin-up|row|pulldown|lat|face pull/,'Lead with the elbows · full stretch · squeeze the back'],[/curl|extension|raise|shrug|kickback/,'Slow and controlled · full range · no swinging'],[/plank|hold|carry|hang|bird dog|dead bug/,'Brace hard · straight line · steady breathing'],[/run|sprint|jog|ruck|swim|row|bike|cycl|assault|stair/,'Relax the shoulders · steady rhythm · controlled breath'],[/hop|jump|box/,'Land soft · absorb through the hips · reset each rep']];for(var i=0;i<C.length;i++)if(C[i][0].test(n))return C[i][1];return 'Move with control · full range of motion · brace your core';}
+function guideDemo(name){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(name+' proper form technique'),'_blank','noopener');}
+function guideRestDisplay(){var p=(guide&&guide.restPreset)||0;if(guide&&guide.rest>0)return '<span class="g-restt">'+fmtT(guide.rest)+'</span><span class="g-restl">running · tap to reset</span>';return '<span class="g-restt g-restoff">'+fmtT(p)+'</span><span class="g-restl">tap to start</span>';}
+function guideRest(sec){guideStopRest();guide.rest=Math.max(0,sec||0);var upd=function(){var el=document.getElementById('g-rest');if(el)el.innerHTML=guideRestDisplay();};upd();if(guide.rest>0)guide.restId=setInterval(function(){guide.rest--;upd();if(guide.rest<=0){guideStopRest();try{if(navigator.vibrate)navigator.vibrate([300,120,300]);}catch(e){}}},1000);}
+function guideStopRest(){if(guide&&guide.restId){clearInterval(guide.restId);guide.restId=null;}}
+function guideRestTap(){if(guide.rest>0){guideStopRest();guide.rest=0;var el=document.getElementById('g-rest');if(el)el.innerHTML=guideRestDisplay();}else guideRest(guide.restPreset||0);}
+function guideRestAdj(d){if(guide.phase==='exercise'){var e=guide.exs[guide.idx];e.rest=Math.max(0,(+e.rest||0)+d);guide.restPreset=e.rest;}else guide.restPreset=Math.max(0,(guide.restPreset||0)+d);if(guide.rest>0)guide.rest=Math.max(0,guide.rest+d);var el=document.getElementById('g-rest');if(el)el.innerHTML=guideRestDisplay();}
+function guideSet(ei,si,f,v){if(guide.exs[ei]&&guide.exs[ei].sets[si])guide.exs[ei].sets[si][f]=v;}
+function guideDone(ei,si){var s=guide.exs[ei].sets[si];s.done=!s.done;if(s.done)guideRest(guide.exs[ei].rest);guideRender();}
+function guideAddSet(ei){var a=guide.exs[ei].sets,last=a[a.length-1]||{};a.push({reps:last.reps||'',time:last.time||'',weight:last.weight||'',rpe:last.rpe||'',done:false});guideRender();}
+function guideNextEx(){if(guide.idx<guide.exs.length-1){guideStopRest();guide.idx++;guide.rest=0;guideRender();}else guideAfterWorkout();}
+function guideAfterWorkout(){guideStopRest();guide.workoutDone=true;if(guide.cool&&guide.cool.length){guide.phase='cooldown';guide.idx=0;guideRender();}else if(guide.mob&&guide.mob.length){guide.phase='mobility';guide.idx=0;guideRender();}else guideFinish();}
+function guideCoolNext(){if(guide.idx<guide.cool.length-1){guideStopRest();guide.rest=0;guide.idx++;guideRender();}else if(guide.mob&&guide.mob.length){guideStopRest();guide.rest=0;guide.phase='mobility';guide.idx=0;guideRender();}else guideEndSection();}
+function guideMobNext(){if(guide.idx<guide.mob.length-1){guideStopRest();guide.rest=0;guide.idx++;guideRender();}else guideEndSection();}
+function guideEndSection(){guideStopRest();guide.rest=0;if(guide.workoutDone){guide.phase='done';guideRender();}else guideGo('preview');}
+function guideBeginCool(){guide.workoutDone=false;guideGo('cooldown',0);}
+function guideBeginMob(){guide.workoutDone=false;guideGo('mobility',0);}
+function guidePrevEx(){guideStopRest();if(guide.idx>0){guide.idx--;guide.rest=0;guideRender();}else{guide.phase='preview';guideRender();}}
+function guideWarmNext(){if(guide.idx<guide.warm.length-1){guideStopRest();guide.rest=0;guide.idx++;guideRender();}else{guideStopRest();guide.rest=0;guide.phase='preview';guide.idx=0;guideRender();}}
+function guideExit(){if(!confirm('Leave the workout? What you logged here won\u2019t be saved.'))return;guideStopRest();guide=null;closeMo('mo-guide');}
+function guideFinish(){
+  guideStopRest();
+  var notes=(document.getElementById('g-notes')||{}).value||guide.notes||'';
+  var exs=guide.exs.map(function(e){return {n:e.name,g:e.block||'',sets:e.sets.map(function(s){return {r:s.reps||'',t:s.time||'',w:s.weight||'',rpe:s.rpe||'',done:!!s.done};})};});
+  var n=new Date();
+  st.workouts.unshift({id:uid(),nm:guide.dayT,blk:'',dur:'',warm:'',warmDn:true,coolDn:true,mobDn:true,preN:'',postN:'',notes:notes,exs:exs,dt:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][n.getMonth()]+' '+n.getDate()});
+  saveSt();guide=null;closeMo('mo-guide');rFit();toast('Workout logged.');
+}
+function guideSetRow(ei,si,s,e){
+  function inp(f,ph,extra){return '<input class="g-in'+(extra||'')+'" value="'+String(s[f]==null?'':s[f]).replace(/"/g,'&quot;')+'" placeholder="'+ph+'" inputmode="'+(f==='time'?'text':'decimal')+'" onchange="guideSet('+ei+','+si+',\''+f+'\',this.value)">';}
+  var f='<div class="g-setrow'+(s.done?' g-setdone':'')+'"><span class="g-setn">'+(si+1)+'</span>';
+  if(e.mode!=='time')f+=inp('reps','reps');
+  if(e.mode!=='reps')f+=inp('time','time');
+  if(!e.bw)f+=inp('weight','lb');
+  f+=inp('rpe','RPE',' g-rpe');
+  f+='<button class="g-check'+(s.done?' on':'')+'" onclick="guideDone('+ei+','+si+')"><i class="ti ti-check"></i></button></div>';
+  return f;
+}
+function guideRender(){
+  var el=document.getElementById('guide-body');if(!el||!guide)return;
+  var close='<button class="g-x" onclick="guideExit()"><i class="ti ti-x"></i></button>';
+  var P=guide.phase;
+  if(P==='preview'){
+    var stepSect=function(lbl,arr,btn){return arr.length?('<div class="g-sec">'+lbl+' · '+arr.length+' moves</div>'+arr.map(function(w){return '<div class="g-prow"><span>'+w.name+'</span></div>';}).join('')+(btn||'')):'';};
+    el.innerHTML=close+'<div class="g-head">'+guide.prog+'</div><div class="g-day">'+guide.dayT+'</div>'+
+      stepSect('Warm-up',guide.warm,'<button class="g-btn" onclick="guideGo(\'warmup\',0)">Begin warm-up →</button>')+
+      '<div class="g-sec">Workout · '+guide.exs.length+' exercises</div>'+guide.exs.map(function(e){return '<div class="g-prow"><span><span class="ex-chip" style="background:'+gcolor(e.group)+';display:inline-block;margin-right:7px"></span>'+e.name+'</span><span class="g-pdet">'+guidePresc(e)+'</span></div>';}).join('')+
+      stepSect('Cool-down',guide.cool,'<button class="g-btn" onclick="guideBeginCool()">Begin cool-down →</button>')+stepSect('Mobility',guide.mob,'<button class="g-btn" onclick="guideBeginMob()">Begin mobility →</button>')+
+      '<button class="g-btn primary" onclick="guideGo(\'exercise\',0)">Start workout →</button>';
+  }else if(P==='warmup'||P==='cooldown'||P==='mobility'){
+    var meta=P==='warmup'?{arr:guide.warm,lbl:'Warm-up',cue:'Smooth and easy — raise your temperature and prep the joints.',nx:'guideWarmNext()'}
+      :P==='cooldown'?{arr:guide.cool,lbl:'Cool-down',cue:'Ease down — hold the stretch and breathe.',nx:'guideCoolNext()'}
+      :{arr:guide.mob,lbl:'Mobility',cue:'Slow and deliberate — more time where you feel tight.',nx:'guideMobNext()'};
+    var w=meta.arr[guide.idx], last=guide.idx>=meta.arr.length-1, back;
+    guide.restPreset=w.secs||0;
+    if(guide.idx>0)back="guideGo('"+P+"',"+(guide.idx-1)+")";
+    else if(P==='warmup')back="guideGo('preview')";
+    else if(P==='cooldown')back="guideGo('exercise',"+(guide.exs.length-1)+")";
+    else back=(guide.cool&&guide.cool.length)?"guideGo('cooldown',"+(guide.cool.length-1)+")":"guideGo('exercise',"+(guide.exs.length-1)+")";
+    var endLbl=guide.workoutDone?'Finish ✓':'Done ✓';
+    var nx=!last?'Next →':(P==='warmup'?'Done ✓':(P==='cooldown'?((guide.mob&&guide.mob.length)?'Mobility →':endLbl):endLbl));
+    var tmr=w.secs?('<div class="g-restrow" style="max-width:280px;margin:16px auto 0"><button class="g-radj" onclick="guideRestAdj(-15)">−15</button><div class="g-rest" id="g-rest" onclick="guideRestTap()">'+guideRestDisplay()+'</div><button class="g-radj" onclick="guideRestAdj(15)">+15</button></div>'):'';
+    el.innerHTML=close+'<div class="g-prog">'+meta.lbl+' · '+(guide.idx+1)+' / '+meta.arr.length+'</div><div class="g-center"><div class="g-exname">'+w.name+'</div><div class="g-cue">'+meta.cue+'</div>'+tmr+'</div>'+
+      '<div class="g-nav"><button class="g-btn2" onclick="'+back+'">← Back</button><button class="g-btn primary" onclick="'+meta.nx+'">'+nx+'</button></div>';
+  }else if(P==='exercise'){
+    var e=guide.exs[guide.idx];
+    guide.restPreset=+e.rest||0;
+    var lastEx=guide.idx>=guide.exs.length-1, hasEnd=(guide.cool&&guide.cool.length)||(guide.mob&&guide.mob.length);
+    var nextLbl=!lastEx?'Next →':(hasEnd?'Cool-down →':'Finish ✓');
+    el.innerHTML=close+'<div class="g-prog">Exercise '+(guide.idx+1)+' / '+guide.exs.length+'</div>'+
+      '<div class="g-restrow"><button class="g-radj" onclick="guideRestAdj(-15)">−15</button><div class="g-rest" id="g-rest" onclick="guideRestTap()">'+guideRestDisplay()+'</div><button class="g-radj" onclick="guideRestAdj(15)">+15</button></div>'+
+      '<div class="g-ref"><div class="g-refbadge" style="background:'+gcolor(e.group)+'"></div><div class="g-refname">'+e.name+'</div>'+(e.sub?'<div class="g-refsub">'+e.sub+'</div>':'')+'<div class="g-cue">'+exerciseCue(e.name)+'</div><button class="g-demo" onclick="guideDemo(\''+e.name.replace(/'/g,"\\'")+'\')"><i class="ti ti-player-play"></i> Watch demo</button></div>'+
+      (e.note?'<div class="g-note">'+e.note+'</div>':'')+
+      '<div class="g-sets"><div class="g-setshdr"><span class="g-setn"></span>'+(e.mode!=='time'?'<span>reps</span>':'')+(e.mode!=='reps'?'<span>time</span>':'')+(!e.bw?'<span>lb</span>':'')+'<span class="g-rpe">RPE</span><span style="flex:0 0 40px"></span></div>'+e.sets.map(function(s,si){return guideSetRow(guide.idx,si,s,e);}).join('')+'<button class="g-addset" onclick="guideAddSet('+guide.idx+')">+ add set</button></div>'+
+      '<div class="g-nav"><button class="g-btn2" onclick="guidePrevEx()">'+(guide.idx>0?'← Prev':'Preview')+'</button><button class="g-btn primary" onclick="guideNextEx()">'+nextLbl+'</button></div>';
+  }else if(P==='done'){
+    var dc=0,tot=0;guide.exs.forEach(function(x){x.sets.forEach(function(s){tot++;if(s.done)dc++;});});
+    var bk=(guide.mob&&guide.mob.length)?"guideGo('mobility',"+(guide.mob.length-1)+")":((guide.cool&&guide.cool.length)?"guideGo('cooldown',"+(guide.cool.length-1)+")":"guideGo('exercise',"+(guide.exs.length-1)+")");
+    el.innerHTML=close+'<div class="g-prog">Session complete</div><div class="g-center" style="flex:0;padding:16px 0 4px"><div class="g-exname">Nice work.</div><div class="g-cue">'+guide.exs.length+' exercises · '+dc+' of '+tot+' sets logged</div></div>'+
+      '<div class="g-sec">Notes / AAR</div><textarea class="g-notes" id="g-notes" oninput="guide.notes=this.value" placeholder="e.g. RPE crept above 8 — deload next week">'+(guide.notes||'')+'</textarea>'+
+      '<div class="g-nav"><button class="g-btn2" onclick="'+bk+'">← Back</button><button class="g-btn primary" onclick="guideFinish()">Log workout ✓</button></div>';
+  }
+}
 function togWarmDet(){document.getElementById('warm-det').classList.toggle('open');}
 function planAdvance(){
   const c=planCtx();if(!c)return;const p=st.plan;p.day++;
@@ -1961,7 +2437,7 @@ function planAdvance(){
 }
 // Build exercise list for a plan day: prefer explicit exercises, else derive from blocks
 function planDayExercises(day){
-  if(day.exs&&day.exs.length)return day.exs.map(function(e){return {block:(EXGROUPS[e.group]?EXGROUPS[e.group].lb:''),name:e.name,sets:e.sets,reps:e.reps,ex:e};});
+  if(day.exs&&day.exs.length)return day.exs.filter(function(e){return !(e.sets!=null&&+e.sets===0);}).map(function(e){return {block:(EXGROUPS[e.group]?EXGROUPS[e.group].lb:''),name:e.name,sets:e.sets,reps:e.reps,ex:e};});
   if(day.exercises&&day.exercises.length)return day.exercises.map(e=>({block:e.block||'',name:e.name}));
   // derive: each block becomes a header; put the block description as one reference "exercise" line grouped under block name
   const out=[];
