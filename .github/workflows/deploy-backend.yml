@@ -1,0 +1,48 @@
+name: Deploy backend
+
+# Deploys Edge Functions and database migrations straight from GitHub, so no
+# developer tools need to be installed on a managed laptop.
+#
+# Required repository secrets (Settings -> Secrets -> Actions):
+#   SUPABASE_ACCESS_TOKEN  - from https://supabase.com/dashboard/account/tokens
+#   SUPABASE_PROJECT_REF   - ujbyygvxnyzdipsndafm
+#   SUPABASE_DB_PASSWORD   - database password (only needed for migrations)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Push database migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+          supabase db push
+
+      - name: Deploy Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          for dir in supabase/functions/*/; do
+            name=$(basename "$dir")
+            [ "$name" = "_shared" ] && continue
+            echo "Deploying $name"
+            supabase functions deploy "$name" \
+              --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+          done
