@@ -43,13 +43,18 @@ Deno.serve(handler(async (req, { userId, client }) => {
     if (error) errors.push(`${table}: ${error.message}`);
     counts[table] = error ? 0 : rows.length;
   };
+  const up1 = async (table: string, rowObj: any, onConflict: string) => {
+    const { error } = await client.from(table).upsert(rowObj, { onConflict });
+    if (error) errors.push(`${table}: ${error.message}`);
+    counts[table] = error ? 0 : 1;
+  };
 
   // profile ──────────────────────────────────────────────
-  await client.from("profiles").upsert({
+  await up1("profiles", {
     id: userId,
     body_weight: st.bodyWt != null ? num(st.bodyWt) : null,
     theme: str(st.theme, "field"),
-  }, { onConflict: "id" });
+  }, "id");
 
   // accounts ─────────────────────────────────────────────
   const order: string[] = st.accountOrder ?? Object.keys(st.accounts ?? {});
@@ -96,9 +101,7 @@ Deno.serve(handler(async (req, { userId, client }) => {
 
   // finance plan (kept whole) ────────────────────────────
   if (st.finPlan) {
-    await client.from("finance_plans").upsert(
-      { user_id: userId, data: st.finPlan }, { onConflict: "user_id" });
-    counts["finance_plans"] = 1;
+    await up1("finance_plans", { user_id: userId, data: st.finPlan }, "user_id");
   }
 
   // personal records / maxes ─────────────────────────────
@@ -114,19 +117,19 @@ Deno.serve(handler(async (req, { userId, client }) => {
 
   // plan state ───────────────────────────────────────────
   if (st.plan) {
-    await client.from("plan_state").upsert({
+    await up1("plan_state", {
       user_id: userId,
       program: st.plan.prog ?? null,
       phase_idx: num(st.plan.ph),
       week: num(st.plan.wk, 1),
       day_idx: num(st.plan.day),
-    }, { onConflict: "user_id" });
-    counts["plan_state"] = 1;
+    }, "user_id");
   }
 
   // workouts + their sets ────────────────────────────────
   let setCount = 0;
   for (const w of (st.workouts ?? [])) {
+   try {
     const { data: wr, error: we } = await client.from("workouts").upsert({
       id: w.id && /^[0-9a-f-]{36}$/i.test(w.id) ? w.id : undefined,
       user_id: userId,
@@ -152,6 +155,7 @@ Deno.serve(handler(async (req, { userId, client }) => {
       const { error: se } = await client.from("workout_sets").insert(sets);
       if (se) errors.push(`sets: ${se.message}`); else setCount += sets.length;
     }
+   } catch (e) { errors.push(`workout row: ${e instanceof Error ? e.message : String(e)}`); }
   }
   counts["workouts"] = (st.workouts ?? []).length;
   counts["workout_sets"] = setCount;

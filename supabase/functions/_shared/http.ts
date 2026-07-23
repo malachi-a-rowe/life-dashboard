@@ -90,7 +90,7 @@ export function handler(fn: (req: Request, caller: Caller) => Promise<Response>)
       return await fn(req, caller);
     } catch (err) {
       const status = err instanceof HttpError ? err.status : 500;
-      const message = err instanceof HttpError ? err.message : "Internal error";
+      const message = err instanceof HttpError ? err.message : ("Internal error: " + (err instanceof Error ? err.message : String(err)));
       if (status === 500) console.error(err);
       return json({ error: message }, status, origin);
     }
