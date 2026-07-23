@@ -5,7 +5,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 
 // The app is served from GitHub Pages; allow that origin plus local testing.
 const ALLOWED = [
-  "https://malachirowe.github.io",
+  "https://malachi-a-rowe.github.io",
   "http://localhost:8000",
   "http://127.0.0.1:8000",
 ];
