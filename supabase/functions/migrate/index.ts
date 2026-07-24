@@ -13,6 +13,16 @@ const num = (v: unknown, d = 0) => {
   return Number.isFinite(n) ? n : d;
 };
 const str = (v: unknown, d = "") => (v == null ? d : String(v));
+// Some collections are stored as arrays, others as objects keyed by name.
+// Coerce either into an array of items, injecting the key as `_key`.
+function asList(v: unknown): any[] {
+  if (Array.isArray(v)) return v;
+  if (v && typeof v === "object") {
+    return Object.entries(v as Record<string, any>).map(([k, val]) =>
+      (val && typeof val === "object") ? { _key: k, ...val } : { _key: k, value: val });
+  }
+  return [];
+}
 // Legacy dates are stored like "Jul 13" / "2026-05-04". Normalise to YYYY-MM-DD.
 function toDate(v: unknown): string {
   const s = str(v).trim();
@@ -68,7 +78,7 @@ Deno.serve(handler(async (req, { userId, client }) => {
   })), "user_id,name");
 
   // transactions — external_id makes re-runs and Plaid idempotent ─
-  await up("transactions", (st.transactions ?? []).map((t: any, i: number) => ({
+  await up("transactions", asList(st.transactions).map((t: any, i: number) => ({
     user_id: userId,
     occurred_on: toDate(t.dt),
     account: str(t.ac),
@@ -82,9 +92,9 @@ Deno.serve(handler(async (req, { userId, client }) => {
   })), "user_id,external_id");
 
   // savings buckets ──────────────────────────────────────
-  await up("savings_buckets", (st.savings ?? []).map((s: any) => ({
+  await up("savings_buckets", asList(st.savings).map((s: any) => ({
     user_id: userId,
-    name: str(s.name),
+    name: str(s.name ?? s._key),
     goal: num(s.goal),
     start_amt: num(s.startAmt),
     manual_current: num(s.current),
@@ -93,10 +103,10 @@ Deno.serve(handler(async (req, { userId, client }) => {
   })), "user_id,name");
 
   // budgets ──────────────────────────────────────────────
-  await up("budgets", (st.budgets ?? []).map((b: any) => ({
+  await up("budgets", asList(st.budgets).map((b: any) => ({
     user_id: userId,
-    category: str(b.cat ?? b.category ?? b.name),
-    planned: num(b.planned ?? b.amt),
+    category: str(b.category ?? b.cat ?? b.name ?? b._key),
+    planned: num(b.planned ?? b.amt ?? b.value),
   })).filter((b: any) => b.category), "user_id,category");
 
   // finance plan (kept whole) ────────────────────────────
@@ -128,7 +138,7 @@ Deno.serve(handler(async (req, { userId, client }) => {
 
   // workouts + their sets ────────────────────────────────
   let setCount = 0;
-  for (const w of (st.workouts ?? [])) {
+  for (const w of asList(st.workouts)) {
    try {
     const { data: wr, error: we } = await client.from("workouts").upsert({
       id: w.id && /^[0-9a-f-]{36}$/i.test(w.id) ? w.id : undefined,
@@ -157,24 +167,24 @@ Deno.serve(handler(async (req, { userId, client }) => {
     }
    } catch (e) { errors.push(`workout row: ${e instanceof Error ? e.message : String(e)}`); }
   }
-  counts["workouts"] = (st.workouts ?? []).length;
+  counts["workouts"] = asList(st.workouts).length;
   counts["workout_sets"] = setCount;
 
   // habits + logs ────────────────────────────────────────
-  const habitDefs = st.habitDefs ?? st.habits ?? [];
+  const habitDefs = asList(st.habitDefs ?? st.habits);
   await up("habits", habitDefs.map((h: any, i: number) => ({
     user_id: userId,
-    name: str(h.name ?? h.label ?? h),
+    name: str(h.name ?? h.label ?? h._key ?? h.value),
     cadence: str(h.cadence ?? h.freq, "daily"),
     sort_order: i,
     archived: !!h.archived,
   })).filter((h: any) => h.name), "user_id,name");
 
   // goals ────────────────────────────────────────────────
-  await up("goals", (st.goals ?? []).map((g: any) => ({
+  await up("goals", asList(st.goals).map((g: any) => ({
     user_id: userId,
     area: g.area ?? null,
-    name: str(g.name ?? g.title),
+    name: str(g.name ?? g.title ?? g._key),
     target: g.target != null ? String(g.target) : null,
     due_on: g.due ? toDate(g.due) : null,
     progress: num(g.progress),
